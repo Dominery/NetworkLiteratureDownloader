@@ -20,6 +20,8 @@ def turn_headers():
 
 url = 'https://m.biqooge.com/s.php'
 session = requests.Session()
-code_json = session.post(url, headers=turn_headers(), data={'keyword': '牧神记', 't': '1'})
+code_json = session.post(url, headers=turn_headers(), data={'keyword': '玩家超正义', 't': '1'})
+code_json.encoding = code_json.apparent_encoding
+print(code_json)
 
 print(code_json.text)
