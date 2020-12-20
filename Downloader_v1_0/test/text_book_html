@@ -1,15 +1,4 @@
-import unittest
-
-from Downloader_v1_0.book import Book
-
-
-class ArticleTest(unittest.TestCase):
-    def setUp(self) -> None:
-        self.article = Book('1')
-
-    def test_get_book_info(self):
-        html_str = """
-         <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta http-equiv="Content-Type" content="application/xhtml+xml;charset=utf-8" />
@@ -40,7 +29,7 @@ class ArticleTest(unittest.TestCase):
     <script language="javascript" type="text/javascript" src="/js/zepto.min.js"></script>
     <script language="javascript" type="text/javascript" src="/js/common.js"></script>
     <!--<script>_17mb_bottom();_17mb_xuanfu();</script>-->
-<form name="articlesearch" class="searchForm" method="post" action="/s.php">  
+<form name="articlesearch" class="searchForm" method="post" action="/s.php">
     <input type="text" name="keyword" class="searchForm_input searchForm_input2" placeholder="输入书名或作者,请您少字也别错字。" />
     <input type="hidden" name="t" value="1" />
     <input type="submit" class="searchForm_btn" value="搜索" />
@@ -61,12 +50,3 @@ class ArticleTest(unittest.TestCase):
 </footer>
 </body>
 </html>
-        """
-        self.article.parse_book_html(html_str)
-        print(self.article.book_url)
-        self.assertEqual(bool(self.article.book_url),True)
-
-
-
-if __name__ == '__main__':
-    unittest.main()
