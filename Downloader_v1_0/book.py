@@ -7,12 +7,14 @@ from Downloader_v1_0.url_request import UrlRequest
 
 
 class Book:
-    def __init__(self, search_book):
-        self.search_url = 'https://m.biqooge.com/s.php'
-        self.article_urls = []
-        self.book_url = []
+    def __init__(self, search_book, settings):
+        self.settings = settings
+        self.search_url = settings.search_url
+        self.article_urls = settings.article_urls
         self.book_name = search_book
+        UrlRequest.pretend_header(self.settings.request_head_paras_file)
         self.url_request = UrlRequest('utf-8')
+        self.book_url = None
 
     def get_book_info(self):
         data = {'keyword': self.book_name, 't': '1'}
@@ -23,7 +25,7 @@ class Book:
         soup = BeautifulSoup(html, 'html.parser')
         books = soup.find_all('div', attrs={'class': 'hot_sale'})
         for book in books:
-            self.book_url.append(self._set_book(str(book)))
+            self.settings.choose_urls.append(self._set_book(str(book)))
 
     @staticmethod
     def _set_book(html):
@@ -33,16 +35,13 @@ class Book:
         author = re.search(r'<p class="author">.*作者：(.*?)</p>', html)
         return Book(book_id[1], title[1], author[1])
 
-    def make_choice(self):
-        for i in self.book_url:
-            print(f'{i.title} {i.author}')
-        num = int(input('choose a book'))
-        self.book_url = self.book_url[num]
+    def make_choice(self,index):
+        self.book_url = self.settings.choose_urls[index]
 
     def get_urls_article(self):
         if not isinstance(self.book_url, tuple):
             raise ValueError('Not choose a book')
-        start_url = "https://www.biqooge.com" + self.book_url[0]
+        start_url = self.settings.index_url + self.book_url[0]
         html = self.url_request.get(start_url)
         soup = BeautifulSoup(html, 'html.parser')
         result = soup.find('div', attrs={'id': 'list'})

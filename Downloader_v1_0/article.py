@@ -48,8 +48,9 @@ class Article:
         else:
             self.title = raw_title
 
-    def write(self,filepath):
+    def write(self,filepath,completed_article):
         path = os.path.join(filepath,self.title)
         with open(path,'w',encoding='utf-8')as f:
             f.write(self.content)
+        completed_article.append(f'已下载完....{self.title}')
 
