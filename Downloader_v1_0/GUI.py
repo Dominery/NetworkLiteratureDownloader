@@ -16,7 +16,7 @@ class DownloadFrame(wx.Frame):
         self.path = None
         self.panel = wx.Panel(parent=self)
         self.show_download_process_label = wx.StaticText(parent=self.panel, label='')
-        self.show_download_files_label = wx.StaticText(parent=self.panel, label='', style=wx.TE_MULTILINE)
+        self.show_download_files_text = wx.TextCtrl(parent=self.panel,  style=wx.TE_MULTILINE|wx.TE_READONLY)
         self.file_button = wx.Button(parent=self.panel, label='file', id=3)
         self.search_button = wx.Button(parent=self.panel, label='Search', id=1)
         self.download_button = wx.Button(parent=self.panel, label='Download', id=2)
@@ -29,20 +29,18 @@ class DownloadFrame(wx.Frame):
         vbox = wx.BoxSizer(wx.VERTICAL)
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(self.file_button, proportion=1, flag=wx.FIXED_MINSIZE | wx.CENTER, border=30)
-        hbox.Add(self.search_text, proportion=4, flag=wx.FIXED_MINSIZE | wx.CENTER, border=30)
+        hbox.Add(self.search_text, proportion=2, flag=wx.FIXED_MINSIZE | wx.CENTER, border=30)
         hbox.Add(self.search_button, proportion=1, flag=wx.FIXED_MINSIZE | wx.CENTER, border=30)
         hbox.Add(self.choice_box, proportion=4, flag=wx.FIXED_MINSIZE | wx.CENTER, border=30)
         hbox.Add(self.download_button, proportion=1, flag=wx.FIXED_MINSIZE | wx.CENTER, border=30)
         vbox.Add(hbox, proportion=1, flag=wx.ALL | wx.EXPAND)
         download_info_box = wx.StaticBox(parent=self.panel, label='Download Info')
         hsbox = wx.StaticBoxSizer(download_info_box, wx.VERTICAL)
-        hsbox.Add(self.show_download_process_label, proportion=1, flag=wx.ALL | wx.EXPAND, border=30)
-        hsbox.Add(self.show_download_files_label, proportion=3, flag=wx.ALL | wx.EXPAND, border=30)
+        hsbox.Add(self.show_download_process_label, proportion=1, flag=wx.ALL | wx.EXPAND, border=10)
+        hsbox.Add(self.show_download_files_text, proportion=3, flag=wx.ALL | wx.EXPAND, border=30)
         vbox.Add(hsbox, proportion=4, flag=wx.CENTER | wx.EXPAND)
         self.panel.SetSizer(vbox)
         self.bind_event()
-        self.show_download_files_label.SetLabelText('There will show you the downloaded articles...')
-        self.show_download_process_label.SetLabelText('There will show you the progress of download')
 
     def bind_event(self):
         self.Bind(wx.EVT_BUTTON, self.search_onclick, id=1)
@@ -78,7 +76,7 @@ class DownloadFrame(wx.Frame):
     def show_download_info(self,event):
         if 0 < self.settings.process < self.settings.sum_tasks:
             self.show_download_process_label.SetLabelText(self.settings.format_process)
-            self.show_download_files_label.SetLabelText('\n'.join(self.settings.completed_article))
+            self.show_download_files_text.AppendText(self.settings.completed_article.pop()+'\n')
         elif self.settings.process >= self.settings.sum_tasks:
             self.timer.Stop()
         else:
