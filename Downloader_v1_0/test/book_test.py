@@ -12,7 +12,7 @@ class BookTest(unittest.TestCase):
     def test_get_book_info(self):
         with open('text_book_html','r',encoding='utf-8')as f:
             html_str = f.read()
-        self.book.parse_book_html(html_str)
+        self.book._parse_book_html(html_str)
         self.assertEqual(bool(self.book.book_url), True)
 
     def user_make_choice(self,prompt):
@@ -31,8 +31,8 @@ class BookTest(unittest.TestCase):
         s = namedtuple('Book', ['id', 'title', 'author'])
         self.book.book_url = s('/4_4074/','牧神记','宅猪')
         self.book.get_urls_article()
-        self.assertEqual(bool(self.book.article_url),True)
-        print(self.book.article_url[0:6])
+        self.assertEqual(bool(self.book.article_urls), True)
+        print(self.book.article_urls[0:6])
 
 
 

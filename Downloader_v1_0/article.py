@@ -1,19 +1,21 @@
 import os
 import re
 
+from bs4 import BeautifulSoup
 
 from Downloader_v1_0.url_request import UrlRequest
 
 
 class Article:
     def __init__(self,article_url):
-        self.url_request = UrlRequest('utf-8')
+        self.url_request = UrlRequest('gbk')
         self.html = self.url_request.get(article_url)
         self.title = None
         self.content = None
 
     def get_content(self):
-        self.content = re.search(r'<div id="content">(.*?)</div>',self.html)[1]
+        soup = BeautifulSoup(self.html,'html.parser')
+        self.content = soup.find('div',attrs={'id':'content'}).text
 
     def get_title(self):
         raw_title = re.search(r'<h1>(.*?)</h1>', self.html)[1]

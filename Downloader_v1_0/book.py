@@ -9,7 +9,7 @@ from Downloader_v1_0.url_request import UrlRequest
 class Book:
     def __init__(self, search_book):
         self.search_url = 'https://m.biqooge.com/s.php'
-        self.article_url = []
+        self.article_urls = []
         self.book_url = []
         self.book_name = search_book
         self.url_request = UrlRequest('utf-8')
@@ -17,16 +17,16 @@ class Book:
     def get_book_info(self):
         data = {'keyword': self.book_name, 't': '1'}
         html = self.url_request.post(data, self.search_url)
-        self.parse_book_html(html)
+        self._parse_book_html(html)
 
-    def parse_book_html(self, html):
+    def _parse_book_html(self, html):
         soup = BeautifulSoup(html, 'html.parser')
         books = soup.find_all('div', attrs={'class': 'hot_sale'})
         for book in books:
-            self.book_url.append(self.set_book(str(book)))
+            self.book_url.append(self._set_book(str(book)))
 
     @staticmethod
-    def set_book(html):
+    def _set_book(html):
         Book = namedtuple('Book', ['id', 'title', 'author'])
         book_id = re.search(r'<a href="(/.*?/)">', html)
         title = re.search(r'<p class="title">(.*?)</p>', html)
@@ -49,4 +49,4 @@ class Book:
         pattern = r'<a href="%s(.*?)">' % (self.book_url[0])
         urls = re.findall(pattern, str(result))
         for i in range(len(urls)):
-            self.article_url.append(start_url + urls[i])
+            self.article_urls.append(start_url + urls[i])
