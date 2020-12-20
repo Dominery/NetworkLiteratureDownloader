@@ -1,11 +1,11 @@
 import unittest
 
-from Downloader_v1_0.articleurls import ArticleUrls
+from Downloader_v1_0.book import Book
 
 
 class ArticleTest(unittest.TestCase):
     def setUp(self) -> None:
-        self.article = ArticleUrls('1')
+        self.article = Book('1')
 
     def test_get_book_info(self):
         html_str = """
@@ -62,7 +62,7 @@ class ArticleTest(unittest.TestCase):
 </body>
 </html>
         """
-        self.article.get_book_info(html_str)
+        self.article.parse_book_html(html_str)
         print(self.article.book_url)
         self.assertEqual(bool(self.article.book_url),True)
 

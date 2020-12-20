@@ -96,7 +96,8 @@ def prefix_change(full_name):
             if num_list[-1] not in dict.keys():
                 set_list[3] = str(num_string.index(num_list[-1]))
         else:
-            num_list.reverse()
+            # to format the title which doesn't have characters like '十百千'
+            num_list.reverse() # process the situation that the num doesn't have thousand position
             for i in range(len(num_list)):
                 set_list[3-i]=str(num_string.index(num_list[i]))
         return '第' + ''.join(set_list) + '章' + result.group(2)

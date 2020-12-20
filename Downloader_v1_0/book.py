@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 from Downloader_v1_0.url_request import UrlRequest
 
 
-class ArticleUrls:
+class Book:
     def __init__(self, search_book):
         self.search_url = 'https://m.biqooge.com/s.php'
         self.article_url = []
@@ -14,12 +14,12 @@ class ArticleUrls:
         self.book = search_book
         self.url_request = UrlRequest('utf-8')
 
-    def get_book_url(self):
+    def get_book_info(self):
         data = {'keyword': self.book, 't': '1'}
         html = self.url_request.post(data,self.search_url)
-        self.get_book_info(html)
+        self.parse_book_html(html)
 
-    def get_book_info(self,html):
+    def parse_book_html(self, html):
         soup = BeautifulSoup(html,'html.parser')
         books = soup.find_all('div',attrs={'class':'hot_sale'})
         for book in books:
