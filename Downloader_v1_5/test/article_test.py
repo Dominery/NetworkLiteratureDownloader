@@ -1,6 +1,6 @@
 import unittest
 
-from Downloader_v1_0.article import Article
+from Downloader_v1_5.article import Article
 
 
 class MyTestCase(unittest.TestCase):

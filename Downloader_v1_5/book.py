@@ -3,7 +3,7 @@ from collections import namedtuple
 
 from bs4 import BeautifulSoup
 
-from Downloader_v1_0.url_request import UrlRequest
+from Downloader_v1_5.url_request import UrlRequest
 
 
 class Book:

@@ -6,8 +6,8 @@ from gevent import pool, monkey
 
 monkey.patch_all(thread=False)
 
-from Downloader_v1_0.article import Article
-from Downloader_v1_0.book import Book
+from Downloader_v1_5.article import Article
+from Downloader_v1_5.book import Book
 
 
 class Download:
@@ -35,9 +35,12 @@ class Download:
 
     def make_article(self, article_url):
         article = self.article(article_url)
-        article.get_title()
-        article.get_content()
-        article.write(self.directory_path, self.settings.completed_article)
+        try:
+            article.get_title()
+            article.get_content()
+            article.write(self.directory_path, self.settings.completed_article)
+        except Exception:
+            pass
         self.settings.process += 1
 
     def download(self):

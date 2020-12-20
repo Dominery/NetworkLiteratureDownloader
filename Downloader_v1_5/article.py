@@ -3,7 +3,7 @@ import re
 
 from bs4 import BeautifulSoup
 
-from Downloader_v1_0.url_request import UrlRequest
+from Downloader_v1_5.url_request import UrlRequest
 
 
 class Article:
@@ -48,8 +48,8 @@ class Article:
         else:
             self.title = raw_title
 
-    def write(self,filepath,completed_article):
-        path = os.path.join(filepath,self.title)
+    def write(self,filepath,completed_article,property='.txt'):
+        path = os.path.join(filepath,self.title+property)
         with open(path,'w',encoding='utf-8')as f:
             f.write(self.content)
         completed_article.append(f'已下载完....{self.title}')

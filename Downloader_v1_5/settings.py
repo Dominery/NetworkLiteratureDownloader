@@ -12,13 +12,9 @@ class Settings:
         self.window_title = 'NetworkLiteratureDownloader'
         self.process = 0
         self.sum_tasks = 0
+        self.store_directory_path = None
 
-    @property
-    def format_process(self):
-        return '[{:<20}]已下载:{:.2f}%'.format('#' * (self.process * 20 // self.sum_tasks),
-                                            self.process / self.sum_tasks * 100)
-
-    def rest(self):
+    def reset(self):
         self.process = 0
         self.sum_tasks = 0
         self.article_urls = []

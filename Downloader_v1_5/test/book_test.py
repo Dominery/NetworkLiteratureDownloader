@@ -2,7 +2,7 @@ import unittest
 from collections import namedtuple
 from unittest import mock
 
-from Downloader_v1_0.book import Book
+from Downloader_v1_5.book import Book
 
 
 class BookTest(unittest.TestCase):

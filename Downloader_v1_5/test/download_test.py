@@ -1,7 +1,7 @@
 import unittest
 
-from Downloader_v1_0.download import Download
-from Downloader_v1_0.settings import Settings
+from Downloader_v1_5.download import Download
+from Downloader_v1_5.settings import Settings
 
 
 class MyTestCase(unittest.TestCase):

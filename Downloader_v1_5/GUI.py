@@ -1,8 +1,10 @@
+from collections import deque
+
 import wx
 from threading import Thread
 
-from Downloader_v1_0.download import Download
-from Downloader_v1_0.settings import Settings
+from Downloader_v1_5.download import Download
+from Downloader_v1_5.settings import Settings
 
 
 class DownloadFrame(wx.Frame):
@@ -11,17 +13,19 @@ class DownloadFrame(wx.Frame):
         self.settings = settings
         super().__init__(parent=None, size=self.settings.window_size, title=self.settings.window_title)
         self.Center()
-        self.choice_list = ['zhong']
-        self.thread = []
-        self.path = None
+        self.thread = deque(maxlen=5)
         self.panel = wx.Panel(parent=self)
-        self.show_download_process_label = wx.StaticText(parent=self.panel, label='')
-        self.show_download_files_text = wx.TextCtrl(parent=self.panel,  style=wx.TE_MULTILINE|wx.TE_READONLY)
+        self.show_download_process_gauge = wx.Gauge(parent=self.panel,
+                                                    style=wx.GA_HORIZONTAL | wx.GA_SMOOTH | wx.GA_TEXT,
+                                                    size=wx.DefaultSize, pos=wx.DefaultPosition,
+                                                    validator=wx.DefaultValidator,
+                                                    name='download_process')
+        self.show_download_files_text = wx.TextCtrl(parent=self.panel, style=wx.TE_MULTILINE | wx.TE_READONLY)
         self.file_button = wx.Button(parent=self.panel, label='file', id=3)
         self.search_button = wx.Button(parent=self.panel, label='Search', id=1)
         self.download_button = wx.Button(parent=self.panel, label='Download', id=2)
         self.search_text = wx.TextCtrl(parent=self.panel)
-        self.choice_box = wx.Choice(parent=self.panel, choices=self.choice_list)
+        self.choice_box = wx.Choice(parent=self.panel, choices=[])
         self.timer = wx.Timer(self)
         self.set_up()
 
@@ -36,8 +40,8 @@ class DownloadFrame(wx.Frame):
         vbox.Add(hbox, proportion=1, flag=wx.ALL | wx.EXPAND)
         download_info_box = wx.StaticBox(parent=self.panel, label='Download Info')
         hsbox = wx.StaticBoxSizer(download_info_box, wx.VERTICAL)
-        hsbox.Add(self.show_download_process_label, proportion=1, flag=wx.ALL | wx.EXPAND, border=10)
-        hsbox.Add(self.show_download_files_text, proportion=3, flag=wx.ALL | wx.EXPAND, border=30)
+        hsbox.Add(self.show_download_process_gauge, proportion=1, flag=wx.ALL | wx.SHAPED, border=10)
+        hsbox.Add(self.show_download_files_text, proportion=4, flag=wx.ALL | wx.EXPAND, border=30)
         vbox.Add(hsbox, proportion=4, flag=wx.CENTER | wx.EXPAND)
         self.panel.SetSizer(vbox)
         self.bind_event()
@@ -58,42 +62,54 @@ class DownloadFrame(wx.Frame):
         else:
             return
 
+    def reset(self):
+        self.settings.reset()
+        self.search_text.SetValue('')
+        self.choice_box.SetItems([])
+        self.show_download_process_gauge.SetValue(0)
+        self.download_button.Enable()
+        self.show_download_files_text.SetValue('')
+        self.thread.popleft()
+
     def download_onclick(self, event):
         select = self.choice_box.GetSelection()
-        if select >= 0 :
-            if not self.path:
-                self.message_box()
-                return
-            self.download.get_article_urls(select)
-            self.download.mkdir(self.path)
-            self.thread.append(Thread(target=self.download.download))
-            self.thread[-1].start()
-            event.GetEventObject().Disable()
-            self.timer.Start(500)
-        else:
-            return
+        if select >= 0:
+            if not self.settings.store_directory_path:
+                self.message_box("choose a directory to store", "WARNING!",self.choose_directory)
+            if self.settings.store_directory_path:
+                self.download.get_article_urls(select)
+                self.download.mkdir(self.settings.store_directory_path)
+                self.show_download_process_gauge.SetRange(self.settings.sum_tasks)
+                self.thread.append(Thread(target=self.download.download))
+                self.thread[-1].start()
+                event.GetEventObject().Disable()
+                self.timer.Start(100)
 
-    def show_download_info(self,event):
-        if 0 < self.settings.process < self.settings.sum_tasks:
-            self.show_download_process_label.SetLabelText(self.settings.format_process)
-            self.show_download_files_text.AppendText(self.settings.completed_article.pop()+'\n')
-        elif self.settings.process >= self.settings.sum_tasks:
-            self.timer.Stop()
+    def show_download_info(self, event):
+        if bool(self.settings.completed_article) or  self.settings.process<self.settings.sum_tasks:
+            self._change_download_info()
         else:
-            return
+            self.timer.Stop()
+            self.message_box("the downloading task is completed,do you want to continue a new task?", "COMPLETED",
+                             self.reset)
+
+    def _change_download_info(self):
+        self.show_download_process_gauge.SetValue(self.settings.process)
+        if self.settings.completed_article:
+            self.show_download_files_text.AppendText(self.settings.completed_article.pop() + '\n')
 
     def choose_directory(self, event=None):
         dialog = wx.DirDialog(None, "choose a directory:",
                               style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON)
         if dialog.ShowModal() == wx.ID_OK:
-            self.path = dialog.GetPath()
+            self.settings.store_directory_path = dialog.GetPath()
         dialog.Destroy()
 
-    def message_box(self):
-        message_box = wx.MessageDialog(None, "choose a directory to store", "WARNING!",
+    def message_box(self,msg,title,handler):
+        message_box = wx.MessageDialog(None, msg, title,
                                        wx.YES_NO | wx.ICON_QUESTION)
         if message_box.ShowModal() == wx.ID_YES:
-            self.choose_directory()
+            handler()
         message_box.Destroy()
 
 
