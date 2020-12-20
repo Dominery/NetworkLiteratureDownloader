@@ -23,7 +23,7 @@ class Article:
 
     def format_title(self,raw_title):
         num_string = '零一二三四五六七八九十百千'
-        result = re.search(f"第([{num_string}]*?)章(.*?).txt", raw_title)
+        result = re.search(r"第([%s]*?)章"%num_string, raw_title)
         if result:
             num_list = []
             for i in result.group(1):
@@ -44,7 +44,7 @@ class Article:
                 num_list.reverse()  # process the situation that the num doesn't have thousand position
                 for i in range(len(num_list)):
                     set_list[3 - i] = str(num_string.index(num_list[i]))
-            self.title = '第' + ''.join(set_list) + '章' + result.group(2)
+            self.title = raw_title.replace(result[1],''.join(set_list))
         else:
             self.title = raw_title
 
