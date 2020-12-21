@@ -17,6 +17,19 @@ def message_box(msg, title, yes_handler=None,no_handler=None):
     message_box.Destroy()
 
 
+class DownloadInof(wx.StaticBoxSizer):
+    def __init__(self,panel):
+        download_box = wx.StaticBox(parent=panel,label='DownloadInfo')
+        super(DownloadInof, self).__init__(download_box, wx.VERTICAL)
+        self.download_process_gauge = wx.Gauge(parent=panel,style=wx.GA_HORIZONTAL | wx.GA_SMOOTH | wx.GA_TEXT,
+                                                size=wx.DefaultSize, pos=wx.DefaultPosition,validator=wx.DefaultValidator,
+                                                name='download_process')
+        self.show_download_files_text = wx.TextCtrl(parent=panel, style=wx.TE_MULTILINE | wx.TE_READONLY)
+        self.Add(self.download_process_gauge, proportion=1, flag=wx.ALL | wx.SHAPED, border=10)
+        self.Add(self.show_download_files_text, proportion=4, flag=wx.ALL | wx.EXPAND, border=30)
+
+
+
 class DownloadFrame(wx.Frame):
 
     def __init__(self, settings):
@@ -25,12 +38,13 @@ class DownloadFrame(wx.Frame):
         self.Center()
         self.thread = deque(maxlen=5)
         self.panel = wx.Panel(parent=self)
-        self.show_download_process_gauge = wx.Gauge(parent=self.panel,
-                                                    style=wx.GA_HORIZONTAL | wx.GA_SMOOTH | wx.GA_TEXT,
-                                                    size=wx.DefaultSize, pos=wx.DefaultPosition,
-                                                    validator=wx.DefaultValidator,
-                                                    name='download_process')
-        self.show_download_files_text = wx.TextCtrl(parent=self.panel, style=wx.TE_MULTILINE | wx.TE_READONLY)
+        # self.show_download_process_gauge = wx.Gauge(parent=self.panel,
+        #                                             style=wx.GA_HORIZONTAL | wx.GA_SMOOTH | wx.GA_TEXT,
+        #                                             size=wx.DefaultSize, pos=wx.DefaultPosition,
+        #                                             validator=wx.DefaultValidator,
+        #                                             name='download_process')
+        #self.show_download_files_text = wx.TextCtrl(parent=self.panel, style=wx.TE_MULTILINE | wx.TE_READONLY)
+        self.download_info = DownloadInof(self.panel)
         self.file_button = wx.Button(parent=self.panel, label='file', id=3)
         self.search_button = wx.Button(parent=self.panel, label='Search', id=1)
         self.download_button = wx.Button(parent=self.panel, label='Download', id=2)
@@ -48,11 +62,11 @@ class DownloadFrame(wx.Frame):
         hbox.Add(self.choice_box, proportion=4, flag=wx.FIXED_MINSIZE | wx.CENTER, border=30)
         hbox.Add(self.download_button, proportion=1, flag=wx.FIXED_MINSIZE | wx.CENTER, border=30)
         vbox.Add(hbox, proportion=1, flag=wx.ALL | wx.EXPAND)
-        download_info_box = wx.StaticBox(parent=self.panel, label='Download Info')
-        hsbox = wx.StaticBoxSizer(download_info_box, wx.VERTICAL)
-        hsbox.Add(self.show_download_process_gauge, proportion=1, flag=wx.ALL | wx.SHAPED, border=10)
-        hsbox.Add(self.show_download_files_text, proportion=4, flag=wx.ALL | wx.EXPAND, border=30)
-        vbox.Add(hsbox, proportion=4, flag=wx.CENTER | wx.EXPAND)
+        # download_info_box = wx.StaticBox(parent=self.panel, label='Download Info')
+        # hsbox = wx.StaticBoxSizer(download_info_box, wx.VERTICAL)
+        # hsbox.Add(self.show_download_process_gauge, proportion=1, flag=wx.ALL | wx.SHAPED, border=10)
+        # hsbox.Add(self.show_download_files_text, proportion=4, flag=wx.ALL | wx.EXPAND, border=30)
+        vbox.Add(self.download_info, proportion=4, flag=wx.CENTER | wx.EXPAND)
         self.panel.SetSizer(vbox)
         self.bind_event()
 
@@ -60,7 +74,7 @@ class DownloadFrame(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.search_onclick, id=1)
         self.Bind(wx.EVT_BUTTON, self.download_onclick, id=2)
         self.Bind(wx.EVT_BUTTON, self.choose_directory, id=3)
-        self.Bind(wx.EVT_TIMER, self.show_download_info, self.timer)
+        #self.Bind(wx.EVT_TIMER, self.show_download_info, self.timer)
 
     def search_onclick(self, event):
         book = self.search_text.GetValue()
