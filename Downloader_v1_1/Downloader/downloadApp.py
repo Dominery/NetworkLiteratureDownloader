@@ -1,10 +1,9 @@
 from collections import deque
-
 import wx
 from threading import Thread
 
-from Downloader_v1_5.download import Download
-from Downloader_v1_5.settings import Settings
+from Downloader.download import Download
+from Downloader.settings import Settings
 
 
 class DownloadFrame(wx.Frame):

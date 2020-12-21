@@ -7,6 +7,7 @@ class Settings:
         self.choose_urls = []
         self.completed_article = []
         self.threads_num = 5
+        self.gevent_pool_num = 10
         self.request_head_paras_file = './sources/headers_content'
         self.window_size = (640, 480)
         self.window_title = 'NetworkLiteratureDownloader'

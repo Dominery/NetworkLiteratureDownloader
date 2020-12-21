@@ -6,8 +6,8 @@ from gevent import pool, monkey
 
 monkey.patch_all(thread=False)
 
-from Downloader_v1_5.article import Article
-from Downloader_v1_5.book import Book
+from Downloader.article import Article
+from Downloader.book import Book
 
 
 class Download:
@@ -44,7 +44,7 @@ class Download:
         self.settings.process += 1
 
     def download(self):
-        Pool = pool.Pool(5)
+        Pool = pool.Pool(self.settings.gevent_pool_num)
         gevent.joinall([Pool.spawn(self.make_article, i) for i in self.settings.article_urls])
 
 

@@ -1,6 +1,6 @@
 import unittest
 
-from Downloader_v1_5.url_request import UrlRequest
+from Downloader_v1_1_0.url_request import UrlRequest
 
 
 class UrlRequestTest(unittest.TestCase):

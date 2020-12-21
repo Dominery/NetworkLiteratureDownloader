@@ -1,9 +1,8 @@
 import re
 from collections import namedtuple
-
 from bs4 import BeautifulSoup
 
-from Downloader_v1_5.url_request import UrlRequest
+from Downloader.url_request import UrlRequest
 
 
 class Book:
