@@ -52,5 +52,5 @@ class Article:
         path = os.path.join(filepath,self.title+property)
         with open(path,'w',encoding='utf-8')as f:
             f.write(self.content)
-        completed_article.append(f'已下载完....{self.title}')
+        completed_article.append(self.title)
 

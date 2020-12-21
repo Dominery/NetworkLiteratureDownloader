@@ -6,6 +6,17 @@ from Downloader.download import Download
 from Downloader.settings import Settings
 
 
+def message_box(msg, title, yes_handler=None,no_handler=None):
+    message_box = wx.MessageDialog(None, msg, title,
+                                   wx.YES_NO | wx.ICON_QUESTION)
+    choice = message_box.ShowModal()
+    if choice == wx.ID_YES and yes_handler:
+        yes_handler()
+    if choice==wx.ID_NO and no_handler:
+        no_handler()
+    message_box.Destroy()
+
+
 class DownloadFrame(wx.Frame):
 
     def __init__(self, settings):
@@ -56,7 +67,7 @@ class DownloadFrame(wx.Frame):
         if book:
             self.download = Download(book, self.settings)
             self.download.search_related_book()
-            choices = ['《' + i.title + '》' + i.author for i in self.settings.choose_urls][0:5]
+            choices = ['《' + i.title + '》' + i.author for i in self.settings.choose_urls][0:self.settings.select_max]
             self.choice_box.SetItems(choices)
         else:
             return
@@ -74,7 +85,7 @@ class DownloadFrame(wx.Frame):
         select = self.choice_box.GetSelection()
         if select >= 0:
             if not self.settings.store_directory_path:
-                self.message_box("choose a directory to store", "WARNING!",self.choose_directory)
+                message_box("choose a directory to store", "WARNING!", self.choose_directory)
             if self.settings.store_directory_path:
                 self.download.get_article_urls(select)
                 self.download.mkdir(self.settings.store_directory_path)
@@ -85,17 +96,18 @@ class DownloadFrame(wx.Frame):
                 self.timer.Start(100)
 
     def show_download_info(self, event):
-        if bool(self.settings.completed_article) or  self.settings.process<self.settings.sum_tasks:
+        if bool(self.settings.completed_article) or self.settings.process < self.settings.sum_tasks:
             self._change_download_info()
         else:
             self.timer.Stop()
-            self.message_box("the downloading task is completed,do you want to continue a new task?", "COMPLETED",
-                             self.reset)
+            message_box("the downloading task is completed,do you want to continue a new task?", "COMPLETED",
+                        self.reset, self.Close)
 
     def _change_download_info(self):
         self.show_download_process_gauge.SetValue(self.settings.process)
         if self.settings.completed_article:
-            self.show_download_files_text.AppendText(self.settings.completed_article.pop() + '\n')
+            show_article_info = '已下载完：' + self.settings.completed_article.pop() + '......'
+            self.show_download_files_text.AppendText(show_article_info + '\n')
 
     def choose_directory(self, event=None):
         dialog = wx.DirDialog(None, "choose a directory:",
@@ -103,13 +115,6 @@ class DownloadFrame(wx.Frame):
         if dialog.ShowModal() == wx.ID_OK:
             self.settings.store_directory_path = dialog.GetPath()
         dialog.Destroy()
-
-    def message_box(self,msg,title,handler):
-        message_box = wx.MessageDialog(None, msg, title,
-                                       wx.YES_NO | wx.ICON_QUESTION)
-        if message_box.ShowModal() == wx.ID_YES:
-            handler()
-        message_box.Destroy()
 
 
 class App(wx.App):
