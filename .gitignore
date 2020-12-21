@@ -3,3 +3,5 @@ Downloader_v1_1/build/
 Downloader_v1_1/dist/
 Downloader_v1_1/setup.py/
 Downloader_v1_1/__pycache__/
+Downloader_v1_1/Downloader/__pycache__/
+.idea/
