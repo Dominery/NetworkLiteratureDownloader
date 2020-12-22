@@ -22,7 +22,7 @@ class DownloadInfo(wx.StaticBoxSizer):
     def __init__(self, panel):
         download_box = wx.StaticBox(parent=panel, label='DownloadInfo')
         super(DownloadInfo, self).__init__(download_box, wx.VERTICAL)
-        self.download_process_gauge = wx.Gauge(parent=panel,style=wx.GA_HORIZONTAL | wx.GA_SMOOTH | wx.GA_TEXT,
+        self.download_process_gauge = wx.Gauge(parent=panel, style=wx.GA_HORIZONTAL | wx.GA_SMOOTH | wx.GA_TEXT,
                                                size=wx.DefaultSize, pos=wx.DefaultPosition, name='download_process',
                                                validator=wx.DefaultValidator, range=100)
         self.show_download_files_text = wx.TextCtrl(parent=panel, style=wx.TE_MULTILINE | wx.TE_READONLY)
@@ -40,6 +40,43 @@ class DownloadInfo(wx.StaticBoxSizer):
         self.show_download_files_text.SetValue('')
 
 
+class DownloadTasks(wx.StaticBoxSizer):
+    def __init__(self,panel):
+        tasks_box = wx.StaticBox(parent=panel, label="Control Tasks")
+        super(DownloadTasks, self).__init__(tasks_box, wx.VERTICAL)
+        self.choice_box = wx.Choice(parent=panel, choices=[])
+        self.recall_button = wx.Button(parent=panel, label='Remove', id=4)
+        self.download_button = wx.Button(parent=panel, label='Add', id=5)
+        self.tasks_info = wx.TextCtrl(parent=panel,style=wx.TE_MULTILINE|wx.TE_READONLY)
+        grid = wx.GridBagSizer(vgap=10, hgap=10)
+        grid.Add(self.choice_box, pos=(0, 0), span=(1, 2), flag=wx.CENTER | wx.EXPAND)
+        grid.Add(self.download_button, pos=(1, 1), span=(1, 1), flag=wx.FIXED_MINSIZE | wx.CENTER)
+        grid.Add(self.recall_button, pos=(1, 0), span=(1, 1), flag=wx.FIXED_MINSIZE | wx.CENTER)
+        grid.Add(self.tasks_info, pos=(2, 0), span=(4, 2), flag=wx.EXPAND | wx.ALL, border=5)
+        self.Add(grid)
+        self.tasks = deque(maxlen=10)
+
+    def reset(self):
+        self.tasks_info.SetValue('')
+        self.choice_box.SetItems([])
+
+    def bind_event(self,frame):
+        frame.Bind(wx.EVT_BUTTON, self.add_task, id=5)
+        frame.Bind(wx.EVT_BUTTON,self.recall_task,id=4)
+
+    def add_task(self):
+        select = self.choice_box.GetSelection()
+        if select:
+            pass
+
+
+    def recall_task(self):
+        pass
+
+    def set_choices(self,choices):
+        self.choice_box.SetItems(choices)
+
+
 class DownloadFrame(wx.Frame):
 
     def __init__(self, settings):
@@ -50,22 +87,20 @@ class DownloadFrame(wx.Frame):
         self.panel = wx.Panel(parent=self)
         self.download_info = DownloadInfo(self.panel)
         self.file_button = wx.Button(parent=self.panel, label='file', id=3)
+        self.download_task = DownloadTasks(self.panel)
         self.download_button = wx.Button(parent=self.panel, label='Download', id=2)
-        self.add_button = wx.Button(parent=self.panel, label='Add', id=4)
-        self.search_text = wx.TextCtrl(parent=self.panel,id=1,style=wx.TE_PROCESS_ENTER)
+        self.search_text = wx.TextCtrl(parent=self.panel, id=1, style=wx.TE_PROCESS_ENTER)
         # wx.TE_PROCESS_ENTER produce a event when user press enter
-        self.choice_box = wx.Choice(parent=self.panel, choices=[])
         self.timer = wx.Timer(self)
         self.set_up()
 
     def set_up(self):
-        grid = wx.GridBagSizer(vgap=10,hgap=10)
-        grid.Add(self.file_button,pos=(0,0),span=wx.DefaultSpan,flag=wx.FIXED_MINSIZE | wx.CENTER,border=10)
-        grid.Add(self.search_text,pos=(0,1),span=(1,2),flag= wx.CENTER|wx.EXPAND,border=10)
-        grid.Add(self.choice_box,pos=(0,3),span=(1,2),flag= wx.CENTER|wx.EXPAND)
-        grid.Add(self.download_button,pos=(1,4),span=(1,1),flag=wx.FIXED_MINSIZE | wx.CENTER)
-        grid.Add(self.add_button, pos=(1, 3), span=(1, 1), flag=wx.FIXED_MINSIZE | wx.CENTER)
-        grid.Add(self.download_info,pos=(1,0),span=(4,3), flag=wx.CENTER | wx.EXPAND)
+        grid = wx.GridBagSizer(vgap=10, hgap=10)
+        grid.Add(self.file_button, pos=(0, 0), span=wx.DefaultSpan, flag=wx.FIXED_MINSIZE | wx.CENTER, border=10)
+        grid.Add(self.search_text, pos=(0, 1), span=(1, 2), flag=wx.CENTER | wx.EXPAND, border=10)
+        grid.Add(self.download_button,pos=(0,3),span=(1,1),flag=wx.CENTER|wx.FIXED_MINSIZE)
+        grid.Add(self.download_task,pos=(1,3),span=(4,2),flag=wx.EXPAND|wx.CENTER)
+        grid.Add(self.download_info, pos=(1, 0), span=(4, 3), flag=wx.CENTER | wx.EXPAND)
         grid.AddGrowableRow(1)
         grid.AddGrowableCol(0)
         self.panel.SetSizerAndFit(grid)
@@ -83,15 +118,14 @@ class DownloadFrame(wx.Frame):
             self.download = Download(book, self.settings)
             self.download.search_related_book()
             choices = ['《' + i.title + '》' + i.author for i in self.settings.choose_urls][0:self.settings.select_max]
-            self.choice_box.SetItems(choices)
+            self.download_task.set_choices(choices)
         else:
             return
 
     def reset(self):
         self.settings.reset()
         self.search_text.SetValue('')
-        self.choice_box.SetItems([])
-        self.download_button.Enable()
+        self.download_task.reset()
         self.thread.popleft()
         self.download_info.reset()
 
@@ -110,8 +144,8 @@ class DownloadFrame(wx.Frame):
 
     def show_download_info(self, event):
         if bool(self.settings.completed_article) or self.settings.process < self.settings.sum_tasks:
-            process = math.floor(self.settings.process*100/self.settings.sum_tasks+0.5)
-            self.download_info.show_info(process,self.settings.completed_article)
+            process = math.floor(self.settings.process * 100 / self.settings.sum_tasks + 0.5)
+            self.download_info.show_info(process, self.settings.completed_article)
         else:
             self.timer.Stop()
             message_box("the downloading task is completed,do you want to continue a new task?", "COMPLETED",
