@@ -21,14 +21,13 @@ class SearchBook:
         html = self.url_request.post(data, self.search_url)
         self._parse_book_html(html,books_urls)
 
-    def _parse_book_html(self, html,books_urls):
+    def _parse_book_html(self, html, books_urls):
         soup = BeautifulSoup(html, 'html.parser')
         books = soup.find_all('div', attrs={'class': 'hot_sale'})
         for book in books:
             books_urls.append(self._set_book(str(book)))
 
-    @staticmethod
-    def _set_book(html):
+    def _set_book(self,html):
         Book = namedtuple('Book', ['id', 'title', 'author'])
         book_id = re.search(r'<a href="(/.*?/)">', html)
         title = re.search(r'<p class="title">(.*?)</p>', html)

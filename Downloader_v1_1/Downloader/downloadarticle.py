@@ -48,9 +48,9 @@ class DownloadArticle:
         else:
             self.title = raw_title
 
-    def write(self, filepath, completed_article, form='.txt'):
+    def write(self, filepath, completed_articles, form='.txt'):
         path = os.path.join(filepath, self.title + form)
         with open(path,'w',encoding='utf-8')as f:
             f.write(self.content)
-        completed_article.append(self.title)
+        completed_articles.append(self.title)
 

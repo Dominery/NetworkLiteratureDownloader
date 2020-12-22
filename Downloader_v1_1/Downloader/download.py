@@ -29,14 +29,14 @@ class Download:
         try:
             article.get_title()
             article.get_content()
-            article.write(self.directory_path, self.stats.completed_article)
+            article.write(self.directory_path, self.stats.completed_articles)
         except Exception:
             pass
         self.stats.process += 1
 
     def download(self):
         Pool = pool.Pool(self.settings.gevent_pool_num)
-        gevent.joinall([Pool.spawn(self._make_article, i) for i in self.stats.article_urls])
+        gevent.joinall([Pool.spawn(self._make_article, i) for i in self.stats.articles_urls])
 
 
 
