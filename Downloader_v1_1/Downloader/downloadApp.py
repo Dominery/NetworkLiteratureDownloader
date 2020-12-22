@@ -50,9 +50,9 @@ class DownloadFrame(wx.Frame):
         self.panel = wx.Panel(parent=self)
         self.download_info = DownloadInfo(self.panel)
         self.file_button = wx.Button(parent=self.panel, label='file', id=3)
-        self.search_button = wx.Button(parent=self.panel, label='Search', id=1)
         self.download_button = wx.Button(parent=self.panel, label='Download', id=2)
-        self.search_text = wx.TextCtrl(parent=self.panel)
+        self.search_text = wx.TextCtrl(parent=self.panel,id=1,style=wx.TE_PROCESS_ENTER)
+        # wx.TE_PROCESS_ENTER produce a event when user press enter
         self.choice_box = wx.Choice(parent=self.panel, choices=[])
         self.timer = wx.Timer(self)
         self.set_up()
@@ -62,7 +62,6 @@ class DownloadFrame(wx.Frame):
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(self.file_button, proportion=1, flag=wx.FIXED_MINSIZE | wx.CENTER, border=30)
         hbox.Add(self.search_text, proportion=2, flag=wx.FIXED_MINSIZE | wx.CENTER, border=30)
-        hbox.Add(self.search_button, proportion=1, flag=wx.FIXED_MINSIZE | wx.CENTER, border=30)
         hbox.Add(self.choice_box, proportion=4, flag=wx.FIXED_MINSIZE | wx.CENTER, border=30)
         hbox.Add(self.download_button, proportion=1, flag=wx.FIXED_MINSIZE | wx.CENTER, border=30)
         vbox.Add(hbox, proportion=1, flag=wx.ALL | wx.EXPAND)
@@ -71,7 +70,7 @@ class DownloadFrame(wx.Frame):
         self.bind_event()
 
     def bind_event(self):
-        self.Bind(wx.EVT_BUTTON, self.search_onclick, id=1)
+        self.Bind(wx.EVT_TEXT_ENTER, self.search_onclick, self.search_text)
         self.Bind(wx.EVT_BUTTON, self.download_onclick, id=2)
         self.Bind(wx.EVT_BUTTON, self.choose_directory, id=3)
         self.Bind(wx.EVT_TIMER, self.show_download_info, self.timer)
