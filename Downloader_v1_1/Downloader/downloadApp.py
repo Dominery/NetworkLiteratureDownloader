@@ -1,3 +1,4 @@
+import math
 from collections import deque
 import wx
 from threading import Thread
@@ -6,28 +7,37 @@ from Downloader.download import Download
 from Downloader.settings import Settings
 
 
-def message_box(msg, title, yes_handler=None,no_handler=None):
+def message_box(msg, title, yes_handler=None, no_handler=None):
     message_box = wx.MessageDialog(None, msg, title,
                                    wx.YES_NO | wx.ICON_QUESTION)
     choice = message_box.ShowModal()
     if choice == wx.ID_YES and yes_handler:
         yes_handler()
-    if choice==wx.ID_NO and no_handler:
+    if choice == wx.ID_NO and no_handler:
         no_handler()
     message_box.Destroy()
 
 
-class DownloadInof(wx.StaticBoxSizer):
-    def __init__(self,panel):
-        download_box = wx.StaticBox(parent=panel,label='DownloadInfo')
-        super(DownloadInof, self).__init__(download_box, wx.VERTICAL)
+class DownloadInfo(wx.StaticBoxSizer):
+    def __init__(self, panel):
+        download_box = wx.StaticBox(parent=panel, label='DownloadInfo')
+        super(DownloadInfo, self).__init__(download_box, wx.VERTICAL)
         self.download_process_gauge = wx.Gauge(parent=panel,style=wx.GA_HORIZONTAL | wx.GA_SMOOTH | wx.GA_TEXT,
-                                                size=wx.DefaultSize, pos=wx.DefaultPosition,validator=wx.DefaultValidator,
-                                                name='download_process')
+                                               size=wx.DefaultSize, pos=wx.DefaultPosition, name='download_process',
+                                               validator=wx.DefaultValidator, range=100)
         self.show_download_files_text = wx.TextCtrl(parent=panel, style=wx.TE_MULTILINE | wx.TE_READONLY)
         self.Add(self.download_process_gauge, proportion=1, flag=wx.ALL | wx.SHAPED, border=10)
         self.Add(self.show_download_files_text, proportion=4, flag=wx.ALL | wx.EXPAND, border=30)
 
+    def show_info(self, process, download_files):
+        self.download_process_gauge.SetValue(process)
+        if download_files:
+            show_article_info = '已下载完：' + download_files.pop() + '......\n'
+            self.show_download_files_text.AppendText(show_article_info)
+
+    def reset(self):
+        self.download_process_gauge.SetValue(0)
+        self.show_download_files_text.SetValue('')
 
 
 class DownloadFrame(wx.Frame):
@@ -38,13 +48,7 @@ class DownloadFrame(wx.Frame):
         self.Center()
         self.thread = deque(maxlen=5)
         self.panel = wx.Panel(parent=self)
-        # self.show_download_process_gauge = wx.Gauge(parent=self.panel,
-        #                                             style=wx.GA_HORIZONTAL | wx.GA_SMOOTH | wx.GA_TEXT,
-        #                                             size=wx.DefaultSize, pos=wx.DefaultPosition,
-        #                                             validator=wx.DefaultValidator,
-        #                                             name='download_process')
-        #self.show_download_files_text = wx.TextCtrl(parent=self.panel, style=wx.TE_MULTILINE | wx.TE_READONLY)
-        self.download_info = DownloadInof(self.panel)
+        self.download_info = DownloadInfo(self.panel)
         self.file_button = wx.Button(parent=self.panel, label='file', id=3)
         self.search_button = wx.Button(parent=self.panel, label='Search', id=1)
         self.download_button = wx.Button(parent=self.panel, label='Download', id=2)
@@ -62,10 +66,6 @@ class DownloadFrame(wx.Frame):
         hbox.Add(self.choice_box, proportion=4, flag=wx.FIXED_MINSIZE | wx.CENTER, border=30)
         hbox.Add(self.download_button, proportion=1, flag=wx.FIXED_MINSIZE | wx.CENTER, border=30)
         vbox.Add(hbox, proportion=1, flag=wx.ALL | wx.EXPAND)
-        # download_info_box = wx.StaticBox(parent=self.panel, label='Download Info')
-        # hsbox = wx.StaticBoxSizer(download_info_box, wx.VERTICAL)
-        # hsbox.Add(self.show_download_process_gauge, proportion=1, flag=wx.ALL | wx.SHAPED, border=10)
-        # hsbox.Add(self.show_download_files_text, proportion=4, flag=wx.ALL | wx.EXPAND, border=30)
         vbox.Add(self.download_info, proportion=4, flag=wx.CENTER | wx.EXPAND)
         self.panel.SetSizer(vbox)
         self.bind_event()
@@ -74,7 +74,7 @@ class DownloadFrame(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.search_onclick, id=1)
         self.Bind(wx.EVT_BUTTON, self.download_onclick, id=2)
         self.Bind(wx.EVT_BUTTON, self.choose_directory, id=3)
-        #self.Bind(wx.EVT_TIMER, self.show_download_info, self.timer)
+        self.Bind(wx.EVT_TIMER, self.show_download_info, self.timer)
 
     def search_onclick(self, event):
         book = self.search_text.GetValue()
@@ -90,10 +90,9 @@ class DownloadFrame(wx.Frame):
         self.settings.reset()
         self.search_text.SetValue('')
         self.choice_box.SetItems([])
-        self.show_download_process_gauge.SetValue(0)
         self.download_button.Enable()
-        self.show_download_files_text.SetValue('')
         self.thread.popleft()
+        self.download_info.reset()
 
     def download_onclick(self, event):
         select = self.choice_box.GetSelection()
@@ -103,7 +102,6 @@ class DownloadFrame(wx.Frame):
             if self.settings.store_directory_path:
                 self.download.get_article_urls(select)
                 self.download.mkdir(self.settings.store_directory_path)
-                self.show_download_process_gauge.SetRange(self.settings.sum_tasks)
                 self.thread.append(Thread(target=self.download.download))
                 self.thread[-1].start()
                 event.GetEventObject().Disable()
@@ -111,17 +109,12 @@ class DownloadFrame(wx.Frame):
 
     def show_download_info(self, event):
         if bool(self.settings.completed_article) or self.settings.process < self.settings.sum_tasks:
-            self._change_download_info()
+            process = math.floor(self.settings.process*100/self.settings.sum_tasks+0.5)
+            self.download_info.show_info(process,self.settings.completed_article)
         else:
             self.timer.Stop()
             message_box("the downloading task is completed,do you want to continue a new task?", "COMPLETED",
                         self.reset, self.Close)
-
-    def _change_download_info(self):
-        self.show_download_process_gauge.SetValue(self.settings.process)
-        if self.settings.completed_article:
-            show_article_info = '已下载完：' + self.settings.completed_article.pop() + '......'
-            self.show_download_files_text.AppendText(show_article_info + '\n')
 
     def choose_directory(self, event=None):
         dialog = wx.DirDialog(None, "choose a directory:",
