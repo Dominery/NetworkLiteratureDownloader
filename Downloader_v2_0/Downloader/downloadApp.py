@@ -21,26 +21,51 @@ def message_box(msg, title, yes_handler=None, no_handler=None):
     message_box.Destroy()
 
 
+def transparent(wx_class,*args,**kwargs):
+    class Transparent(wx_class):
+        def __init__(self, parent, id=wx.ID_ANY, label='', pos=wx.DefaultPosition, size=wx.DefaultSize,
+                     style=wx.TRANSPARENT_WINDOW, name='transparenttext'):
+            wx_class.__init__(self, parent, id, label, pos, size, style, name)
+            self.Bind(wx.EVT_PAINT, self.on_paint)
+            self.Bind(wx.EVT_ERASE_BACKGROUND, lambda event: None)
+            self.Bind(wx.EVT_SIZE, self.on_size)
+
+        def on_paint(self, event):  # 重写on_paint可以对控件进行重写重新构造形状
+            bdc = wx.PaintDC(self)
+            dc = wx.GCDC(bdc)
+            font_face = self.GetFont()
+            font_color = self.GetForegroundColour()
+            dc.SetFont(font_face)
+            dc.SetTextForeground(font_color)
+            dc.DrawText(self.GetLabel(), 0, 0)
+
+        def on_size(self, event):
+            self.Refresh()
+            event.Skip()
+    return Transparent(*args,**kwargs)
+
+
 class DownloadInfo(wx.StaticBoxSizer):
     def __init__(self, panel):
-        download_box = wx.StaticBox(parent=panel, label='DownloadInfo')
+        download_box = transparent(wx.StaticBox,parent=panel, label='DownloadInfo')
         super(DownloadInfo, self).__init__(download_box, wx.VERTICAL)
         self.download_process_gauge = wx.Gauge(parent=panel, style=wx.GA_HORIZONTAL | wx.GA_SMOOTH | wx.GA_TEXT,
                                                size=wx.DefaultSize, pos=wx.DefaultPosition, name='download_process',
                                                validator=wx.DefaultValidator, range=100)
-        self.show_download_files_text = wx.TextCtrl(parent=panel, style=wx.TE_MULTILINE | wx.TE_READONLY | wx.BORDER_NONE)
-        self.show_process_label = wx.StaticText(parent=panel)
-        grid = wx.GridBagSizer(hgap=5,vgap=5)
-        grid.Add(self.download_process_gauge,pos=(0,0),span=(1,5),flag=wx.FIXED_MINSIZE)
-        grid.Add(self.show_process_label,pos=(0,5),span=(1,1),flag=wx.SHAPED)
-        grid.Add(self.show_download_files_text,pos=(1,0),span=(6,7),flag=wx.EXPAND)
+        self.show_download_files_text = wx.TextCtrl(parent=panel,size=(200,150),
+                                                    style=wx.TE_MULTILINE | wx.TE_READONLY | wx.BORDER_NONE)
+        self.show_process_label =transparent(wx.StaticText,parent=panel)
+        grid = wx.GridBagSizer(hgap=5, vgap=5)
+        grid.Add(self.download_process_gauge, pos=(0, 0), flag=wx.FIXED_MINSIZE)
+        grid.Add(self.show_process_label, pos=(0, 1),  flag=wx.SHAPED)
+        grid.Add(self.show_download_files_text, pos=(1, 0),  flag=wx.EXPAND)
         grid.AddGrowableCol(0)
         grid.AddGrowableRow(1)
         self.Add(grid)
 
     def show_info(self, process, download_files):
         self.download_process_gauge.SetValue(process)
-        self.show_process_label.SetLabelText(str(process)+'%')
+        self.show_process_label.SetLabelText(str(process) + '%')
         if download_files:
             show_article_info = '已下载：' + download_files.pop() + '\n'
             self.show_download_files_text.AppendText(show_article_info)
@@ -53,17 +78,20 @@ class DownloadInfo(wx.StaticBoxSizer):
 
 class DownloadTasks(wx.StaticBoxSizer):
     def __init__(self, panel):
-        tasks_box = wx.StaticBox(parent=panel, label="Control Tasks")
+        tasks_box = transparent(wx.StaticBox,parent=panel, label="Control Tasks")
+        tasks_box.SetTransparent(255)
         super(DownloadTasks, self).__init__(tasks_box, wx.VERTICAL)
         self.choice_box = wx.Choice(parent=panel, choices=[])
         self.recall_button = wx.Button(parent=panel, label='Remove', id=4)
         self.add_button = wx.Button(parent=panel, label='Add', id=5)
-        self.tasks_info = wx.TextCtrl(parent=panel, style=wx.TE_MULTILINE | wx.TE_READONLY | wx.BORDER_NONE)
+        self.tasks_info = wx.TextCtrl(parent=panel, size=(150,113),
+                                      style=wx.TE_MULTILINE | wx.TE_READONLY | wx.BORDER_NONE)
         grid = wx.GridBagSizer(vgap=5, hgap=5)
         grid.Add(self.choice_box, pos=(0, 0), span=(1, 2), flag=wx.CENTER | wx.EXPAND)
         grid.Add(self.add_button, pos=(1, 1), span=(1, 1), flag=wx.FIXED_MINSIZE | wx.CENTER)
         grid.Add(self.recall_button, pos=(1, 0), span=(1, 1), flag=wx.FIXED_MINSIZE | wx.CENTER)
-        grid.Add(self.tasks_info, pos=(2, 0), span=(5, 3), flag=wx.EXPAND | wx.ALL, border=5)
+        grid.Add(self.tasks_info, pos=(2, 0),span=(2,2), flag=wx.EXPAND | wx.ALL)
+        grid.AddGrowableRow(2)
         self.Add(grid)
         self.tasks = deque(maxlen=10)
 
@@ -121,15 +149,23 @@ class DownloadFrame(wx.Frame):
         self.set_up()
 
     def set_up(self):
+        font = wx.Font(12, wx.SWISS, wx.NORMAL, wx.BOLD)
+        title = transparent(wx.StaticText,parent=self.panel,label='Downloader')
+        title.SetFont(font)
+        topSizer=wx.BoxSizer(wx.VERTICAL)
         grid = wx.GridBagSizer(vgap=10, hgap=10)
         grid.Add(self.file_button, pos=(0, 0), span=wx.DefaultSpan, flag=wx.FIXED_MINSIZE | wx.CENTER, border=10)
         grid.Add(self.search_text, pos=(0, 1), span=(1, 2), flag=wx.CENTER | wx.EXPAND, border=10)
         grid.Add(self.download_button, pos=(0, 3), span=(1, 1), flag=wx.CENTER | wx.FIXED_MINSIZE)
         grid.Add(self.download_task, pos=(1, 3), span=(4, 2), flag=wx.EXPAND | wx.CENTER)
         grid.Add(self.download_info, pos=(1, 0), span=(4, 3), flag=wx.CENTER | wx.EXPAND)
-        grid.AddGrowableRow(1)
-        grid.AddGrowableCol(0)
-        self.panel.SetSizerAndFit(grid)
+        grid.AddGrowableRow(2)
+        grid.AddGrowableCol(1)
+        topSizer.Add(title,0,wx.CENTER)
+        topSizer.Add(wx.StaticLine(self.panel), 0, wx.ALL | wx.EXPAND, 5)
+        topSizer.Add(grid,0,wx.EXPAND)
+        self.panel.SetSizerAndFit(topSizer)
+        self.SetSizeHints(420, 300, 490, 350)  # set min width height and max width and height
         self.bind_event()
 
     def bind_event(self):
@@ -138,6 +174,7 @@ class DownloadFrame(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.choose_directory, id=3)
         self.Bind(wx.EVT_TIMER, self.show_download_info, self.timer)
         self.download_task.bind_event(self)
+        self.panel.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBack)
 
     def search_onclick(self, event):
         book = self.search_text.GetValue()
@@ -189,6 +226,16 @@ class DownloadFrame(wx.Frame):
         if dialog.ShowModal() == wx.ID_OK:
             self.settings.store_directory_path = dialog.GetPath()
         dialog.Destroy()
+
+    def OnEraseBack(self, event):
+        dc = event.GetDC()
+        if not dc:
+            dc = wx.ClientDC(self)
+            rect = self.GetUpdateRegion().GetBox()
+            dc.SetClippingRect(rect)
+        dc.Clear()
+        bmp = wx.Bitmap("background.png")
+        dc.DrawBitmap(bmp, 0, 0)
 
 
 class App(wx.App):
