@@ -9,19 +9,20 @@ class UrlRequest:
 
     @classmethod
     def pretend_header(cls, header_paras_file):
-        with open(header_paras_file, 'r', encoding='utf-8') as f:
-            for line in f:
-                line = line.strip('\n').replace(' ', '')
-                line_lst = line.split(':')
-                if len(line_lst) == 2:
-                    cls.header_paras[line_lst[0]] = line_lst[1]
-                elif len(line_lst) > 2:
-                    value = ''
-                    for i in range(1, len(line_lst)):
-                        value += line_lst[i]
-                    cls.header_paras[line_lst[0]] = value
-                else:
-                    raise ValueError('File Not Have Right Syntax!')
+        if cls.header_paras:
+            with open(header_paras_file, 'r', encoding='utf-8') as f:
+                for line in f:
+                    line = line.strip('\n').replace(' ', '')
+                    line_lst = line.split(':')
+                    if len(line_lst) == 2:
+                        cls.header_paras[line_lst[0]] = line_lst[1]
+                    elif len(line_lst) > 2:
+                        value = ''
+                        for i in range(1, len(line_lst)):
+                            value += line_lst[i]
+                        cls.header_paras[line_lst[0]] = value
+                    else:
+                        raise ValueError('File Not Have Right Syntax!')
 
     def get(self, url):
         try:

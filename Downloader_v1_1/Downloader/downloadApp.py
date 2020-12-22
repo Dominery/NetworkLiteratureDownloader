@@ -5,6 +5,7 @@ from threading import Thread
 
 from Downloader.download import Download
 from Downloader.settings import Settings
+from Downloader.stats import Stats
 
 
 def message_box(msg, title, yes_handler=None, no_handler=None):
@@ -115,7 +116,7 @@ class DownloadFrame(wx.Frame):
     def search_onclick(self, event):
         book = self.search_text.GetValue()
         if book:
-            self.download = Download(book, self.settings)
+            self.download = Download(Stats(book), self.settings)
             self.download.search_related_book()
             choices = ['《' + i.title + '》' + i.author for i in self.settings.choose_urls][0:self.settings.select_max]
             self.download_task.set_choices(choices)

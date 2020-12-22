@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 from Downloader.url_request import UrlRequest
 
 
-class Article:
+class DownloadArticle:
     def __init__(self,article_url):
         self.url_request = UrlRequest('gbk')
         self.html = self.url_request.get(article_url)
@@ -48,8 +48,8 @@ class Article:
         else:
             self.title = raw_title
 
-    def write(self,filepath,completed_article,property='.txt'):
-        path = os.path.join(filepath,self.title+property)
+    def write(self, filepath, completed_article, form='.txt'):
+        path = os.path.join(filepath, self.title + form)
         with open(path,'w',encoding='utf-8')as f:
             f.write(self.content)
         completed_article.append(self.title)

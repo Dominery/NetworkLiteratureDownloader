@@ -12,15 +12,15 @@ class MyTestCase(unittest.TestCase):
 
     def test_make_article(self):
         self.download.directory_path = './'
-        self.download.make_article('https://www.biqooge.com/4_4074/13632514.html')
-        self.assertEqual(self.download.settings.process, 1)
+        self.download._make_article('https://www.biqooge.com/4_4074/13632514.html')
+        self.assertEqual(self.download.stats.process, 1)
 
     def test_download(self):
         self.download.directory_path = './'
-        self.download.settings.process =0
-        self.download.settings.article_urls = ['https://www.biqooge.com/0_1/33252800.html','https://www.biqooge.com/0_1/33257756.html']
+        self.download.stats.process =0
+        self.download.stats.article_urls = ['https://www.biqooge.com/0_1/33252800.html', 'https://www.biqooge.com/0_1/33257756.html']
         self.download.download()
-        self.assertEqual(self.download.settings.process,2)
+        self.assertEqual(self.download.stats.process, 2)
 
 
 if __name__ == '__main__':
