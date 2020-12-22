@@ -28,12 +28,19 @@ class DownloadInfo(wx.StaticBoxSizer):
         self.download_process_gauge = wx.Gauge(parent=panel, style=wx.GA_HORIZONTAL | wx.GA_SMOOTH | wx.GA_TEXT,
                                                size=wx.DefaultSize, pos=wx.DefaultPosition, name='download_process',
                                                validator=wx.DefaultValidator, range=100)
-        self.show_download_files_text = wx.TextCtrl(parent=panel, style=wx.TE_MULTILINE | wx.TE_READONLY)
-        self.Add(self.download_process_gauge, proportion=1, flag=wx.ALL | wx.SHAPED, border=5)
-        self.Add(self.show_download_files_text, proportion=4, flag=wx.ALL | wx.EXPAND, border=5)
+        self.show_download_files_text = wx.TextCtrl(parent=panel, style=wx.TE_MULTILINE | wx.TE_READONLY | wx.BORDER_NONE)
+        self.show_process_label = wx.StaticText(parent=panel)
+        grid = wx.GridBagSizer(hgap=5,vgap=5)
+        grid.Add(self.download_process_gauge,pos=(0,0),span=(1,5),flag=wx.FIXED_MINSIZE)
+        grid.Add(self.show_process_label,pos=(0,5),span=(1,1),flag=wx.SHAPED)
+        grid.Add(self.show_download_files_text,pos=(1,0),span=(6,7),flag=wx.EXPAND)
+        grid.AddGrowableCol(0)
+        grid.AddGrowableRow(1)
+        self.Add(grid)
 
     def show_info(self, process, download_files):
         self.download_process_gauge.SetValue(process)
+        self.show_process_label.SetLabelText(str(process)+'%')
         if download_files:
             show_article_info = '已下载：' + download_files.pop() + '\n'
             self.show_download_files_text.AppendText(show_article_info)
@@ -41,6 +48,7 @@ class DownloadInfo(wx.StaticBoxSizer):
     def reset(self):
         self.download_process_gauge.SetValue(0)
         self.show_download_files_text.SetValue('')
+        self.show_process_label.SetLabelText('')
 
 
 class DownloadTasks(wx.StaticBoxSizer):
@@ -50,12 +58,12 @@ class DownloadTasks(wx.StaticBoxSizer):
         self.choice_box = wx.Choice(parent=panel, choices=[])
         self.recall_button = wx.Button(parent=panel, label='Remove', id=4)
         self.add_button = wx.Button(parent=panel, label='Add', id=5)
-        self.tasks_info = wx.TextCtrl(parent=panel, style=wx.TE_MULTILINE | wx.TE_READONLY| wx.BORDER_NONE )
-        grid = wx.GridBagSizer(vgap=10, hgap=10)
+        self.tasks_info = wx.TextCtrl(parent=panel, style=wx.TE_MULTILINE | wx.TE_READONLY | wx.BORDER_NONE)
+        grid = wx.GridBagSizer(vgap=5, hgap=5)
         grid.Add(self.choice_box, pos=(0, 0), span=(1, 2), flag=wx.CENTER | wx.EXPAND)
         grid.Add(self.add_button, pos=(1, 1), span=(1, 1), flag=wx.FIXED_MINSIZE | wx.CENTER)
         grid.Add(self.recall_button, pos=(1, 0), span=(1, 1), flag=wx.FIXED_MINSIZE | wx.CENTER)
-        grid.Add(self.tasks_info, pos=(2, 0), span=(4, 2), flag=wx.EXPAND | wx.ALL, border=5)
+        grid.Add(self.tasks_info, pos=(2, 0), span=(5, 3), flag=wx.EXPAND | wx.ALL, border=5)
         self.Add(grid)
         self.tasks = deque(maxlen=10)
 
@@ -71,7 +79,7 @@ class DownloadTasks(wx.StaticBoxSizer):
 
     def add_task(self, event):
         select = self.choice_box.GetSelection()
-        if select >= 0 :
+        if select >= 0:
             self.stats.book = self.stats.books_infos[select]
             if self.stats not in self.tasks:
                 self.tasks_info.AppendText(f'《{self.stats.book.title}》' + '\n')
@@ -81,11 +89,10 @@ class DownloadTasks(wx.StaticBoxSizer):
                 self.tasks.append(self.stats)
             self.choice_box.SetItems([])
 
-    def recall_task(self,event):
+    def recall_task(self, event):
         if self.tasks:
             self.tasks.pop()
             self.tasks_info.SetValue(''.join([f'《{i.book.title}》\n' for i in self.tasks]))
-
 
     def set_choices(self, book, settings):
         self.stats = BookStats()
@@ -101,7 +108,7 @@ class DownloadFrame(wx.Frame):
     def __init__(self, settings):
         self.settings = settings
         super().__init__(parent=None, title=self.settings.window_title)
-        #self.SetBackgroundColour('blue')
+        # self.SetBackgroundColour('blue')
         self.Center()
         self.panel = wx.Panel(parent=self)
         self.download_info = DownloadInfo(self.panel)
@@ -142,6 +149,7 @@ class DownloadFrame(wx.Frame):
     def reset(self):
         self.download_info.reset()
         self.download_task.reset()
+        self.download_button.Enable()
         self.search_text.SetValue('')
 
     def download_onclick(self, event):
