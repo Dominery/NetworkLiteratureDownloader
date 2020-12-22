@@ -26,12 +26,9 @@ class Download:
 
     def _make_article(self, article_url):
         article = self.article(article_url)
-        try:
-            article.get_title()
-            article.get_content()
-            article.write(self.directory_path, self.stats.completed_articles)
-        except Exception:
-            pass
+        article.get_title()
+        article.get_content()
+        article.write(self.directory_path, self.stats.completed_articles)
         self.stats.process += 1
 
     def download(self):

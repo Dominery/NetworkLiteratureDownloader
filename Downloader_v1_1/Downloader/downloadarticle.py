@@ -15,11 +15,13 @@ class DownloadArticle:
 
     def get_content(self):
         soup = BeautifulSoup(self.html,'html.parser')
-        self.content = soup.find('div',attrs={'id':'content'}).text
+        if soup:
+            self.content = soup.find('div',attrs={'id':'content'}).text
 
     def get_title(self):
-        raw_title = re.search(r'<h1>(.*?)</h1>', self.html)[1]
-        self.format_title(raw_title)
+        raw_title = re.search(r'<h1>(.*?)</h1>', self.html)
+        if raw_title:
+            self.format_title(raw_title[1])
 
     def format_title(self,raw_title):
         num_string = '零一二三四五六七八九十百千'
@@ -49,8 +51,9 @@ class DownloadArticle:
             self.title = raw_title
 
     def write(self, filepath, completed_articles, form='.txt'):
-        path = os.path.join(filepath, self.title + form)
-        with open(path,'w',encoding='utf-8')as f:
-            f.write(self.content)
-        completed_articles.append(self.title)
+        if self.title:
+            path = os.path.join(filepath, self.title + form)
+            with open(path,'w',encoding='utf-8')as f:
+                f.write(self.content)
+            completed_articles.append(self.title)
 
