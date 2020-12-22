@@ -26,8 +26,8 @@ class DownloadInfo(wx.StaticBoxSizer):
                                                size=wx.DefaultSize, pos=wx.DefaultPosition, name='download_process',
                                                validator=wx.DefaultValidator, range=100)
         self.show_download_files_text = wx.TextCtrl(parent=panel, style=wx.TE_MULTILINE | wx.TE_READONLY)
-        self.Add(self.download_process_gauge, proportion=1, flag=wx.ALL | wx.SHAPED, border=10)
-        self.Add(self.show_download_files_text, proportion=4, flag=wx.ALL | wx.EXPAND, border=30)
+        self.Add(self.download_process_gauge, proportion=1, flag=wx.ALL | wx.SHAPED, border=5)
+        self.Add(self.show_download_files_text, proportion=4, flag=wx.ALL | wx.EXPAND, border=5)
 
     def show_info(self, process, download_files):
         self.download_process_gauge.SetValue(process)
@@ -44,13 +44,14 @@ class DownloadFrame(wx.Frame):
 
     def __init__(self, settings):
         self.settings = settings
-        super().__init__(parent=None, size=self.settings.window_size, title=self.settings.window_title)
+        super().__init__(parent=None, title=self.settings.window_title)
         self.Center()
         self.thread = deque(maxlen=5)
         self.panel = wx.Panel(parent=self)
         self.download_info = DownloadInfo(self.panel)
         self.file_button = wx.Button(parent=self.panel, label='file', id=3)
         self.download_button = wx.Button(parent=self.panel, label='Download', id=2)
+        self.add_button = wx.Button(parent=self.panel, label='Add', id=4)
         self.search_text = wx.TextCtrl(parent=self.panel,id=1,style=wx.TE_PROCESS_ENTER)
         # wx.TE_PROCESS_ENTER produce a event when user press enter
         self.choice_box = wx.Choice(parent=self.panel, choices=[])
@@ -58,15 +59,16 @@ class DownloadFrame(wx.Frame):
         self.set_up()
 
     def set_up(self):
-        vbox = wx.BoxSizer(wx.VERTICAL)
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.file_button, proportion=1, flag=wx.FIXED_MINSIZE | wx.CENTER, border=30)
-        hbox.Add(self.search_text, proportion=2, flag=wx.FIXED_MINSIZE | wx.CENTER, border=30)
-        hbox.Add(self.choice_box, proportion=4, flag=wx.FIXED_MINSIZE | wx.CENTER, border=30)
-        hbox.Add(self.download_button, proportion=1, flag=wx.FIXED_MINSIZE | wx.CENTER, border=30)
-        vbox.Add(hbox, proportion=1, flag=wx.ALL | wx.EXPAND)
-        vbox.Add(self.download_info, proportion=4, flag=wx.CENTER | wx.EXPAND)
-        self.panel.SetSizer(vbox)
+        grid = wx.GridBagSizer(vgap=10,hgap=10)
+        grid.Add(self.file_button,pos=(0,0),span=wx.DefaultSpan,flag=wx.FIXED_MINSIZE | wx.CENTER,border=10)
+        grid.Add(self.search_text,pos=(0,1),span=(1,2),flag= wx.CENTER|wx.EXPAND,border=10)
+        grid.Add(self.choice_box,pos=(0,3),span=(1,2),flag= wx.CENTER|wx.EXPAND)
+        grid.Add(self.download_button,pos=(1,4),span=(1,1),flag=wx.FIXED_MINSIZE | wx.CENTER)
+        grid.Add(self.add_button, pos=(1, 3), span=(1, 1), flag=wx.FIXED_MINSIZE | wx.CENTER)
+        grid.Add(self.download_info,pos=(1,0),span=(4,3), flag=wx.CENTER | wx.EXPAND)
+        grid.AddGrowableRow(1)
+        grid.AddGrowableCol(0)
+        self.panel.SetSizerAndFit(grid)
         self.bind_event()
 
     def bind_event(self):

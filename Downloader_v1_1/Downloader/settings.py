@@ -9,7 +9,6 @@ class Settings:
         self.threads_num = 5
         self.gevent_pool_num = 10
         self.request_head_paras_file = './sources/headers_content'
-        self.window_size = (640, 480)
         self.window_title = 'NetworkLiteratureDownloader'
         self.process = 0
         self.sum_tasks = 0
