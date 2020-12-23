@@ -11,15 +11,14 @@ class GetArticles:
     """
     def __init__(self,stats):
         self.url_request=UrlRequest('gbk')
-        self.book_url = stats.book_url
         self.stats = stats
 
-    def get_articles_urls(self):
-        html = self.url_request.get(self.book_url)
+    def get_articles_urls(self,book_url):
+        html = self.url_request.get(book_url)
         soup = BeautifulSoup(html, 'html.parser')
         result = soup.find('div', attrs={'id': 'list'})
         pattern = r'<a href="%s(.*?)">' % self.stats.book.id
         urls = re.findall(pattern, str(result))
         for i in range(len(urls)):
-            self.stats.articles_urls.append(self.book_url + urls[i])
+            self.stats.articles_urls.append(book_url + urls[i])
         self.stats.sum_tasks = len(self.stats.articles_urls)

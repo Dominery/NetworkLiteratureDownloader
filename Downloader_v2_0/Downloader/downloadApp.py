@@ -5,8 +5,6 @@ import wx
 from threading import Thread
 
 from Downloader.download import Download
-from Downloader.article_urls import GetArticles
-from Downloader.searchbook import SearchBook
 from Downloader.settings import Settings
 from Downloader.bookstats import BookStats
 
@@ -115,9 +113,7 @@ class DownloadTasks(wx.StaticBoxSizer):
                     message_box(f'You can only add {self.tasks.maxlen} tasks','WARNING!')
                 else:
                     self.tasks_info.AppendText(f'《{self.stats.book.title}》' + '\n')
-                    self.stats.book_url += self.stats.book.id
-                    get_article = GetArticles(self.stats)
-                    get_article.get_articles_urls()
+                    self.stats.get_article()
                     self.tasks.append(self.stats)
             self.choice_box.SetItems([])
 
@@ -127,10 +123,8 @@ class DownloadTasks(wx.StaticBoxSizer):
             self.tasks_info.SetValue(''.join([f'《{i.book.title}》\n' for i in self.tasks]))
 
     def set_choices(self, book, settings):
-        self.stats = BookStats()
-        self.stats.book_url = settings.index_url
-        search = SearchBook(book, settings)
-        search.get_book_info(self.stats.books_infos)
+        self.stats = BookStats(book,settings)
+        self.stats.search()
         choices = ['《' + i.title + '》' + i.author for i in self.stats.books_infos][0:settings.select_max]
         self.choice_box.SetItems(choices)
 
