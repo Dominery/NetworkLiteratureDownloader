@@ -4,8 +4,7 @@ from Downloader.searchbook import SearchBook
 
 class BookStats:
     """
-    using Facade pattern to make the BookStats Class manage the complicated ports of child classes,
-    only expose the three method for client to invoke
+    using Facade pattern to make the BookStats Class manage the complicated ports of child classes
     the effect of this class is to found the info and store for one book
     """
     def __init__(self,book,settings):

@@ -9,6 +9,52 @@ from Downloader.settings import Settings
 from Downloader.bookstats import BookStats
 
 
+class Tasks:
+    """
+    using Singleton Design and observer pattern
+    """
+    _shared_dict = {}
+
+    def __new__(cls, *args, **kwargs):
+        instance = super(Tasks, cls).__new__(cls, *args, **kwargs)
+        instance.__dict__ = cls._shared_dict
+        return instance
+
+    def __init__(self):
+        if not self._shared_dict:
+            self._tasks = deque(maxlen=10)
+            self._observers = []
+
+    def add_task(self, task):
+        self._tasks.append(task)
+
+    def recall_task(self):
+        self._tasks.pop()
+
+    def has_any_task(self):
+        return bool(self._tasks)
+
+    def full(self):
+        return len(self._tasks) == self._tasks.maxlen
+
+    def assignment(self):
+        return self._tasks.popleft()
+
+    @property
+    def tasks_max(self):
+        return self._tasks.maxlen
+
+    def __iter__(self):
+        return (task for task in self._tasks)
+
+    def add_observer(self, observer):
+        self._observers.append(observer)
+
+    def notify_all(self):
+        for observer in self._observers:
+            observer.reset()
+
+
 def message_box(msg, title, yes_handler=None, no_handler=None):
     message_box = wx.MessageDialog(None, msg, title,
                                    wx.YES_NO | wx.ICON_QUESTION)
@@ -92,13 +138,18 @@ class DownloadTasks(wx.StaticBoxSizer):
         grid.Add(self.tasks_info, pos=(2, 0), span=(2, 2), flag=wx.EXPAND | wx.ALL)
         grid.AddGrowableRow(2)
         self.Add(grid)
-        self.tasks = deque(maxlen=10)
+        self.tasks = Tasks()
+        self.tasks.add_observer(self)
 
     def reset(self):
         self.tasks_info.SetValue('')
         self.choice_box.SetItems([])
         self.add_button.Enable()
         self.recall_button.Enable()
+
+    def disable(self):
+        self.add_button.Disable()
+        self.recall_button.Disable()
 
     def bind_event(self, frame):
         frame.Bind(wx.EVT_BUTTON, self.add_task, id=5)
@@ -109,21 +160,21 @@ class DownloadTasks(wx.StaticBoxSizer):
         if select >= 0:
             self.stats.book = self.stats.books_infos[select]
             if self.stats not in self.tasks:
-                if len(self.tasks) == self.tasks.maxlen:
-                    message_box(f'You can only add {self.tasks.maxlen} tasks','WARNING!')
+                if self.tasks.full():
+                    message_box(f'You can only add {self.tasks.tasks_max} tasks', 'WARNING!')
                 else:
                     self.tasks_info.AppendText(f'《{self.stats.book.title}》' + '\n')
                     self.stats.get_article()
-                    self.tasks.append(self.stats)
+                    self.tasks.add_task(self.stats)
             self.choice_box.SetItems([])
 
     def recall_task(self, event):
-        if self.tasks:
-            self.tasks.pop()
+        if self.tasks.has_any_task():
+            self.tasks.recall_task()
             self.tasks_info.SetValue(''.join([f'《{i.book.title}》\n' for i in self.tasks]))
 
     def set_choices(self, book, settings):
-        self.stats = BookStats(book,settings)
+        self.stats = BookStats(book, settings)
         self.stats.search()
         choices = ['《' + i.title + '》' + i.author for i in self.stats.books_infos][0:settings.select_max]
         self.choice_box.SetItems(choices)
@@ -184,20 +235,20 @@ class DownloadFrame(wx.Frame):
             return
 
     def reset(self):
-        self.download_info.reset()
-        self.download_task.reset()
         self.download_button.Enable()
         self.search_text.SetValue('')
 
     def download_onclick(self, event):
         if not self.settings.store_directory_path:
             message_box("choose a directory to store", "WARNING!", self.choose_directory)
-        if self.settings.store_directory_path and self.download_task.tasks:
-            self.task = self.download_task.tasks.popleft()
+        self.tasks = Tasks()
+        if self.settings.store_directory_path and self.tasks.has_any_task():
+            self.current_task = self.tasks.assignment()
             event.GetEventObject().Disable()
-            self.download_task.add_button.Disable()
-            self.download_task.recall_button.Disable()
-            self.start_task(self.task)
+            self.download_task.disable()
+            self.tasks.add_observer(self)
+            self.tasks.add_observer(self.download_info)
+            self.start_task(self.current_task)
 
     def start_task(self, task):
         self.download_info.reset()
@@ -208,17 +259,17 @@ class DownloadFrame(wx.Frame):
         self.timer.Start(100)
 
     def show_download_info(self, event):
-        if bool(self.task.completed_articles) or self.task.process < self.task.sum_tasks:
-            process = floor(self.task.process * 100 / self.task.sum_tasks + 0.5)
-            self.download_info.show_info(process, self.task.completed_articles)
+        if bool(self.current_task.completed_articles) or self.current_task.process < self.current_task.sum_tasks:
+            process = floor(self.current_task.process * 100 / self.current_task.sum_tasks + 0.5)
+            self.download_info.show_info(process, self.current_task.completed_articles)
         else:
             self.timer.Stop()
-            if self.download_task.tasks:
-                self.task = self.download_task.tasks.popleft()
-                self.start_task(self.task)
+            if self.tasks.has_any_task():
+                self.current_task = self.tasks.assignment()
+                self.start_task(self.current_task)
             else:
                 message_box("the downloading task is completed,do you want to continue a new task?", "COMPLETED",
-                            self.reset, self.Close)
+                            self.tasks.notify_all, self.Close)
 
     def choose_directory(self, event=None):
         dialog = wx.DirDialog(None, "choose a directory:",
