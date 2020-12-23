@@ -20,6 +20,7 @@ class Settings:
             self.request_head_paras_file = './sources/headers.json'  # path of the header
             self.window_title = 'NetworkLiteratureDownloader'
             self.window_transparent = 240  # the number range from 0 to 255 controls transparency of the window
+            self.background_picture = './sources/background.png'
             self.store_directory_path = None
 
 

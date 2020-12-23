@@ -1,4 +1,5 @@
-import math
+import os
+from math import floor
 from collections import deque
 import wx
 from threading import Thread
@@ -178,7 +179,8 @@ class DownloadFrame(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.choose_directory, id=3)
         self.Bind(wx.EVT_TIMER, self.show_download_info, self.timer)
         self.download_task.bind_event(self)
-        self.panel.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBack)
+        if os.path.exists(self.settings.background_picture):
+            self.panel.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBack)
 
     def search_onclick(self, event):
         book = self.search_text.GetValue()
@@ -213,7 +215,7 @@ class DownloadFrame(wx.Frame):
 
     def show_download_info(self, event):
         if bool(self.task.completed_articles) or self.task.process < self.task.sum_tasks:
-            process = math.floor(self.task.process * 100 / self.task.sum_tasks + 0.5)
+            process = floor(self.task.process * 100 / self.task.sum_tasks + 0.5)
             self.download_info.show_info(process, self.task.completed_articles)
         else:
             self.timer.Stop()
@@ -238,7 +240,7 @@ class DownloadFrame(wx.Frame):
             rect = self.GetUpdateRegion().GetBox()
             dc.SetClippingRect(rect)
         dc.Clear()
-        bmp = wx.Bitmap("background.png")
+        bmp = wx.Bitmap(self.settings.background_picture)
         dc.DrawBitmap(bmp, 0, 0)
 
 

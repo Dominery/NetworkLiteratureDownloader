@@ -5,3 +5,6 @@ Downloader_v2_0/setup.py/
 Downloader_v2_0/__pycache__/
 Downloader_v2_0/Downloader/__pycache__/
 .idea/
+Downloader_v2_0/Downloader/build/
+Downloader_v2_0/Downloader/dist/
+Downloader_v2_0/Downloader/downloadApp.spec/
