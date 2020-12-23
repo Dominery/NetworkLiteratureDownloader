@@ -1,3 +1,5 @@
+import os
+
 import requests
 import json
 
@@ -10,9 +12,10 @@ class UrlRequest:
 
     @classmethod
     def pretend_header(cls, header_paras_file):
-        if cls.header_paras:
-            with open(header_paras_file, 'r', encoding='utf-8') as f:
-                cls.header_paras_file = json.load(f)
+        if not cls.header_paras:
+            if os.path.exists(header_paras_file):
+                with open(header_paras_file, 'r') as f:
+                    cls.header_paras = json.load(f)
 
     def get(self, url):
         try:

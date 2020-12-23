@@ -82,7 +82,7 @@ class DownloadTasks(wx.StaticBoxSizer):
         tasks_box = transparent(wx.StaticBox, parent=panel, label="Control Tasks")
         super(DownloadTasks, self).__init__(tasks_box, wx.VERTICAL)
         self.choice_box = wx.Choice(parent=panel, choices=[])
-        self.recall_button = wx.Button(parent=panel, label='Remove', id=4)
+        self.recall_button = wx.Button(parent=panel, label='Recall', id=4)
         self.add_button = wx.Button(parent=panel, label='Add', id=5)
         self.tasks_info = wx.TextCtrl(parent=panel, size=(150, 113),
                                       style=wx.TE_MULTILINE | wx.TE_READONLY | wx.BORDER_NONE)
@@ -139,6 +139,7 @@ class DownloadFrame(wx.Frame):
     def __init__(self, settings):
         self.settings = settings
         super().__init__(parent=None, title=self.settings.window_title)
+        self.SetTransparent(self.settings.window_transparent)
         # self.SetBackgroundColour('blue')
         self.Center()
         self.panel = wx.Panel(parent=self)

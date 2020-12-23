@@ -15,12 +15,13 @@ class Settings:
         if not self.__dict__:  # if the class has object, it won't init the properties
             self.index_url = "https://www.biqooge.com"
             self.search_url = "https://m.biqooge.com/s.php"
-            self.select_max = 5
-            self.threads_num = 5
-            self.gevent_pool_num = 10
-            self.request_head_paras_file = './sources/headers_content'
+            self.select_max = 5  # the number range from 1 to 9 controls the number of choices which choice box shows
+            self.gevent_pool_num = 10  # the number controls the contain coroutine in coroutine pool
+            self.request_head_paras_file = './sources/headers.json'  # path of the header
             self.window_title = 'NetworkLiteratureDownloader'
+            self.window_transparent = 240  # the number range from 0 to 255 controls transparency of the window
             self.store_directory_path = None
+
 
 """"
 another choice to create settings class
