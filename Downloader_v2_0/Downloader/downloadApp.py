@@ -12,6 +12,7 @@ from Downloader.bookstats import BookStats
 class Tasks:
     """
     using Singleton Design and observer pattern
+    when all tasks are done the method notify_all will be called,so all the observers' method reset will be invoked
     """
     _shared_dict = {}
 
@@ -48,7 +49,8 @@ class Tasks:
         return (task for task in self._tasks)
 
     def add_observer(self, observer):
-        self._observers.append(observer)
+        if observer not in self._observers:
+            self._observers.append(observer)
 
     def notify_all(self):
         for observer in self._observers:
@@ -217,6 +219,9 @@ class DownloadFrame(wx.Frame):
         self.panel.SetSizerAndFit(topSizer)
         self.SetSizeHints(420, 300, 490, 350)  # set min width height and max width and height
         self.bind_event()
+        self.tasks = Tasks()
+        self.tasks.add_observer(self)
+        self.tasks.add_observer(self.download_info)
 
     def bind_event(self):
         self.Bind(wx.EVT_TEXT_ENTER, self.search_onclick, self.search_text)
@@ -241,13 +246,10 @@ class DownloadFrame(wx.Frame):
     def download_onclick(self, event):
         if not self.settings.store_directory_path:
             message_box("choose a directory to store", "WARNING!", self.choose_directory)
-        self.tasks = Tasks()
         if self.settings.store_directory_path and self.tasks.has_any_task():
             self.current_task = self.tasks.assignment()
             event.GetEventObject().Disable()
             self.download_task.disable()
-            self.tasks.add_observer(self)
-            self.tasks.add_observer(self.download_info)
             self.start_task(self.current_task)
 
     def start_task(self, task):
