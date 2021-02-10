@@ -11,8 +11,6 @@ class BookStats:
         self.settings = settings
         self.articles_urls = []
         self.sum_tasks = 0
-        self.process = 0
-        self.completed_articles = []
         self.book = book
         self.book_url = None
         self._books_infos = []

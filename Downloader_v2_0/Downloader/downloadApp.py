@@ -111,12 +111,21 @@ class DownloadInfo(wx.StaticBoxSizer):
         grid.AddGrowableRow(1)
         self.Add(grid)
 
-    def show_info(self, process, download_files):
-        self.download_process_gauge.SetValue(process)
-        self.show_process_label.SetLabelText(str(process) + '%')
-        if download_files:
-            show_article_info = '已下载：' + download_files.pop() + '\n'
-            self.show_download_files_text.AppendText(show_article_info)
+    def show_info(self,gauge_range):
+        max_value = self.download_process_gauge.GetRange()
+        process = 0
+        self.download_process_gauge.SetRange(gauge_range)
+
+        def run(completed_article):
+            nonlocal process
+            process += 1
+            self.download_process_gauge.SetValue(process)
+            self.show_process_label.SetLabelText(str(round(process / max_value * 100)) + '%')
+            if completed_article:
+                completed_article_info = '已下载：' + completed_article + '\n'
+                self.show_download_files_text.AppendText(completed_article_info)
+
+        return run
 
     def reset(self):
         self.download_process_gauge.SetValue(0)
@@ -197,7 +206,6 @@ class DownloadFrame(wx.Frame):
         self.download_button = wx.Button(parent=self.panel, label='Download', id=2)
         self.search_text = wx.TextCtrl(parent=self.panel, id=1, style=wx.TE_PROCESS_ENTER)
         # wx.TE_PROCESS_ENTER produce a event when user press enter
-        self.timer = wx.Timer(self)
         self.set_up()
 
     def set_up(self):
@@ -227,7 +235,6 @@ class DownloadFrame(wx.Frame):
         self.Bind(wx.EVT_TEXT_ENTER, self.search_onclick, self.search_text)
         self.Bind(wx.EVT_BUTTON, self.download_onclick, id=2)
         self.Bind(wx.EVT_BUTTON, self.choose_directory, id=3)
-        self.Bind(wx.EVT_TIMER, self.show_download_info, self.timer)
         self.download_task.bind_event(self)
         if os.path.exists(self.settings.background_picture):
             self.panel.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBack)
@@ -235,7 +242,7 @@ class DownloadFrame(wx.Frame):
     def search_onclick(self, event):
         book = self.search_text.GetValue()
         if book:
-            self.download_task.set_choices(book, self.settings)
+            Thread(target=self.download_task.set_choices,args=(book,self.settings)).start()
         else:
             return
 
@@ -244,34 +251,28 @@ class DownloadFrame(wx.Frame):
         self.search_text.SetValue('')
 
     def download_onclick(self, event):
-        if not self.settings.store_directory_path:
-            message_box("choose a directory to store", "WARNING!", self.choose_directory)
-        if self.settings.store_directory_path and self.tasks.has_any_task():
-            self.current_task = self.tasks.assignment()
+        if self._check_store_directory_path() and self.tasks.has_any_task():
             event.GetEventObject().Disable()
             self.download_task.disable()
-            self.start_task(self.current_task)
+            thread = Thread(target=self.start_task)
+            thread.start()
 
-    def start_task(self, task):
-        self.download_info.reset()
-        downloader = Download(task, self.settings)
-        downloader.mkdir()
-        thread = Thread(target=downloader.download)
-        thread.start()
-        self.timer.Start(100)
-
-    def show_download_info(self, event):
-        if bool(self.current_task.completed_articles) or self.current_task.process < self.current_task.sum_tasks:
-            process = floor(self.current_task.process * 100 / self.current_task.sum_tasks + 0.5)
-            self.download_info.show_info(process, self.current_task.completed_articles)
+    def _check_store_directory_path(self):
+        if not self.settings.store_directory_path:
+            message_box("choose a directory to store", "WARNING!", self.choose_directory)
+        if self.settings.store_directory_path:
+            return True
         else:
-            self.timer.Stop()
-            if self.tasks.has_any_task():
-                self.current_task = self.tasks.assignment()
-                self.start_task(self.current_task)
-            else:
-                message_box("the downloading task is completed,do you want to continue a new task?", "COMPLETED",
-                            self.tasks.notify_all, self.Close)
+            return False
+
+    def start_task(self):
+        for task in self.tasks:
+            self.download_info.reset()
+            downloader = Download(task, self.download_info.show_info(task.sum_tasks))
+            downloader.mkdir(self.settings.store_directory_path)
+            downloader.download(self.settings.gevent_pool_num)
+        message_box("the downloading task is completed,do you want to continue a new task?", "COMPLETED",
+                    self.tasks.notify_all, self.Close)
 
     def choose_directory(self, event=None):
         dialog = wx.DirDialog(None, "choose a directory:",

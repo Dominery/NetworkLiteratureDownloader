@@ -10,14 +10,13 @@ from Downloader.downloadarticle import DownloadArticle
 
 
 class Download:
-    def __init__(self, stats,settings):
-        self.article = DownloadArticle
+    def __init__(self, stats,article_handler):
         self.stats = stats
-        self.settings = settings
         self.directory_path = None
+        self.article_handler = article_handler
 
-    def mkdir(self):
-        self.directory_path = os.path.join(self.settings.store_directory_path, self.stats.book.title)
+    def mkdir(self,store_directory_path):
+        self.directory_path = os.path.join(store_directory_path, self.stats.book.title)
         if os.path.exists(self.directory_path):
             return False
         else:
@@ -25,14 +24,10 @@ class Download:
             return True
 
     def _make_article(self, article_url):
-        article = self.article(article_url)
-        article.get_title()
-        article.get_content()
-        article.write(self.directory_path, self.stats.completed_articles)
-        self.stats.process += 1
+        DownloadArticle(article_url).run(self.directory_path, self.article_handler)
 
-    def download(self):
-        Pool = pool.Pool(self.settings.gevent_pool_num)
+    def download(self,gevent_pool_num):
+        Pool = pool.Pool(gevent_pool_num)
         gevent.joinall([Pool.spawn(self._make_article, i) for i in self.stats.articles_urls])
 
 

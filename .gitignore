@@ -8,3 +8,5 @@ Downloader_v2_0/Downloader/__pycache__/
 Downloader_v2_0/Downloader/build/
 Downloader_v2_0/Downloader/dist/
 Downloader_v2_0/Downloader/downloadApp.spec/
+*.spec
+*.pyc

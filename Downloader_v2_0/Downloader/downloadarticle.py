@@ -10,7 +10,7 @@ class DownloadArticle:
     def __init__(self,article_url):
         self.url_request = UrlRequest('gbk')
         self.html = self.url_request.get(article_url)
-        self.title = None
+        self.title = ""
         self.content = None
 
     def get_content(self):
@@ -50,10 +50,20 @@ class DownloadArticle:
         else:
             self.title = raw_title
 
-    def write(self, filepath, completed_articles, form='.txt'):
+    def write(self, filepath, form):
         if self.title:
             path = os.path.join(filepath, self.title + form)
             with open(path,'w',encoding='utf-8')as f:
                 f.write(self.content)
-            completed_articles.append(self.title)
 
+    def run(self,filepath,handler,form='.txt'):
+        try:
+            self.get_title()
+            self.get_content()
+        except Exception as e:
+            print(e)
+        else:
+            self.write(filepath, form)
+        finally:
+            if callable(handler):
+                handler(self.title)

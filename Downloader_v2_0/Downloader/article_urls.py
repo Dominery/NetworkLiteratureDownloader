@@ -1,5 +1,6 @@
 import re
 
+import requests
 from bs4 import BeautifulSoup
 
 from Downloader.url_request import UrlRequest
