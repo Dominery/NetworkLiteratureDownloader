@@ -2,7 +2,7 @@ import re
 from collections import namedtuple
 from bs4 import BeautifulSoup
 
-from Downloader.url_request import UrlRequest
+from Downloader.urlRequest import UrlRequest
 
 
 class SearchBook:

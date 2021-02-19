@@ -3,10 +3,10 @@ import re
 import requests
 from bs4 import BeautifulSoup
 
-from Downloader.url_request import UrlRequest
+from Downloader.urlRequest import UrlRequest
 
 
-class GetArticles:
+class ArticlesUrlsGetter:
     """
     input an url of the book, it will store all articles urls of the book in the article_urls properties of stats
     """

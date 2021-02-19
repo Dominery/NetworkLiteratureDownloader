@@ -4,7 +4,7 @@ from collections import deque
 import wx
 from threading import Thread
 
-from Downloader.download import Download
+from Downloader.bookdownloader import BookDownloader
 from Downloader.settings import Settings
 from Downloader.bookstats import BookStats
 
@@ -55,6 +55,19 @@ class Tasks:
     def notify_all(self):
         for observer in self._observers:
             observer.reset()
+        self._tasks.clear()
+"""
+the method below can be used normally in console but go wrong while app start
+    def __iter__(self):
+        return self
+    
+    def __next__(self):
+        if self.has_any_tasks():
+            return self.assignment()
+        else:
+            raise StopIteration()
+"""
+
 
 
 def message_box(msg, title, yes_handler=None, no_handler=None):
@@ -111,10 +124,9 @@ class DownloadInfo(wx.StaticBoxSizer):
         grid.AddGrowableRow(1)
         self.Add(grid)
 
-    def show_info(self,gauge_range):
-        max_value = self.download_process_gauge.GetRange()
+    def show_info(self,max_value):
         process = 0
-        self.download_process_gauge.SetRange(gauge_range)
+        self.download_process_gauge.SetRange(max_value)
 
         def run(completed_article):
             nonlocal process
@@ -268,7 +280,7 @@ class DownloadFrame(wx.Frame):
     def start_task(self):
         for task in self.tasks:
             self.download_info.reset()
-            downloader = Download(task, self.download_info.show_info(task.sum_tasks))
+            downloader = BookDownloader(task, self.download_info.show_info(task.sum_tasks))
             downloader.mkdir(self.settings.store_directory_path)
             downloader.download(self.settings.gevent_pool_num)
         message_box("the downloading task is completed,do you want to continue a new task?", "COMPLETED",
