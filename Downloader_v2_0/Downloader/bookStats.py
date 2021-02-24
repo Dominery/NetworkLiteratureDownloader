@@ -1,5 +1,5 @@
 from Downloader.articlesUrlsGetter import ArticlesUrlsGetter
-from Downloader.searchbook import SearchBook
+from Downloader.bookInfoSearcher import BookInfoSearcher
 
 
 class BookStats:
@@ -17,7 +17,7 @@ class BookStats:
 
     def search(self):
         if isinstance(self.book,str):
-            SearchBook(self.book,self.settings).get_book_info(self._books_infos)
+            self._books_infos = BookInfoSearcher().get_book_info(self.book,self.settings.search_url)
 
     def get_article(self):
         if isinstance(self.book,tuple):

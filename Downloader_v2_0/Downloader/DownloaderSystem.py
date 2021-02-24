@@ -1,12 +1,11 @@
 import os
-from math import floor
 from collections import deque
 import wx
 from threading import Thread
 
-from Downloader.bookdownloader import BookDownloader
+from Downloader.bookDownloader import BookDownloader
 from Downloader.settings import Settings
-from Downloader.bookstats import BookStats
+from Downloader.bookStats import BookStats
 
 
 class Tasks:
@@ -56,6 +55,8 @@ class Tasks:
         for observer in self._observers:
             observer.reset()
         self._tasks.clear()
+
+
 """
 the method below can be used normally in console but go wrong while app start
     def __iter__(self):
@@ -67,7 +68,6 @@ the method below can be used normally in console but go wrong while app start
         else:
             raise StopIteration()
 """
-
 
 
 def message_box(msg, title, yes_handler=None, no_handler=None):
@@ -124,7 +124,7 @@ class DownloadInfo(wx.StaticBoxSizer):
         grid.AddGrowableRow(1)
         self.Add(grid)
 
-    def show_info(self,max_value):
+    def show_info(self, max_value):
         process = 0
         self.download_process_gauge.SetRange(max_value)
 
@@ -254,7 +254,7 @@ class DownloadFrame(wx.Frame):
     def search_onclick(self, event):
         book = self.search_text.GetValue()
         if book:
-            Thread(target=self.download_task.set_choices,args=(book,self.settings)).start()
+            Thread(target=self.download_task.set_choices, args=(book, self.settings)).start()
         else:
             return
 
