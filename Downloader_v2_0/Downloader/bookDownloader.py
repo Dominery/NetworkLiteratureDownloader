@@ -3,6 +3,7 @@ import os
 import gevent
 from gevent import pool, monkey
 
+from Downloader.articleTitleFormatter import ArticleTitleFormatter
 from Downloader.txtExporter import TextExporter
 
 monkey.patch_all(thread=False)
@@ -16,6 +17,7 @@ class BookDownloader:
         self.directory_path = None
         self.article_handler = article_handler
         self.exporter = TextExporter()
+        self.article_title_formatter = ArticleTitleFormatter(len(str(self.stats.sum_tasks)))
 
     def mkdir(self,store_directory_path):
         self.directory_path = os.path.join(store_directory_path, self.stats.book.title)
@@ -25,7 +27,7 @@ class BookDownloader:
     def _make_article(self, article_url):
         title = ""
         try:
-            article = ArticleParser(article_url).parse()
+            article = ArticleParser(article_url).parse(self.article_title_formatter)
             title = article.title
         except Exception as e:
             print(e)

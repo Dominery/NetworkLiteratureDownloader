@@ -26,5 +26,5 @@ class ArticleParser:
         if raw_title:
             return formatter.format(raw_title[1])
 
-    def parse(self):
-        return Article(self._get_title(ArticleTitleFormatter()),self._get_content())
+    def parse(self,formatter):
+        return Article(self._get_title(formatter),self._get_content())
