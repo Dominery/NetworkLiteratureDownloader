@@ -181,24 +181,24 @@ class DownloadTasks(wx.StaticBoxSizer):
     def add_task(self, event):
         select = self.choice_box.GetSelection()
         if select >= 0:
-            self.stats.book = self.stats.books_infos[select]
+            self.stats.choose_book(select)
             if self.stats not in self.tasks:
                 if self.tasks.full():
                     message_box(f'You can only add {self.tasks.tasks_max} tasks', 'WARNING!')
                 else:
-                    self.tasks_info.AppendText(f'《{self.stats.book.title}》' + '\n')
-                    self.stats.get_article()
+                    self.tasks_info.AppendText(f'《{self.stats.get_book_name()}》' + '\n')
+                    Thread(target=self.stats.get_article,args=()).start()
                     self.tasks.add_task(self.stats)
             self.choice_box.SetItems([])
 
     def recall_task(self, event):
         if self.tasks.has_any_task():
             self.tasks.recall_task()
-            self.tasks_info.SetValue(''.join([f'《{i.book.title}》\n' for i in self.tasks]))
+            self.tasks_info.SetValue(''.join([f'《{i.get_book_name()}》\n' for i in self.tasks]))
 
     def set_choices(self, book, settings):
-        self.stats = BookStats(book, settings)
-        self.stats.search()
+        self.stats = BookStats(settings)
+        self.stats.search(book)
         choices = ['《' + i.title + '》' + i.author for i in self.stats.books_infos][0:settings.select_max]
         self.choice_box.SetItems(choices)
 

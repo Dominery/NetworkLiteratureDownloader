@@ -20,7 +20,7 @@ class BookDownloader:
         self.article_title_formatter = ArticleTitleFormatter(len(str(self.stats.sum_tasks)))
 
     def mkdir(self,store_directory_path):
-        self.directory_path = os.path.join(store_directory_path, self.stats.book.title)
+        self.directory_path = os.path.join(store_directory_path, self.stats.get_book_name())
         if not os.path.exists(self.directory_path):
             os.mkdir(self.directory_path)
 

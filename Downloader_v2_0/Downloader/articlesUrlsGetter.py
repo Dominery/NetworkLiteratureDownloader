@@ -10,16 +10,17 @@ class ArticlesUrlsGetter:
     """
     input an url of the book, it will store all articles urls of the book in the article_urls properties of stats
     """
-    def __init__(self,stats):
+    def __init__(self):
         self.url_request=UrlRequest('gbk')
-        self.stats = stats
 
-    def get_articles_urls(self,book_url):
+    def get_articles_urls(self,index_url,book_id):
+        book_url = index_url + book_id
         html = self.url_request.get(book_url)
         soup = BeautifulSoup(html, 'html.parser')
         result = soup.find('div', attrs={'id': 'list'})
-        pattern = r'<a href="%s(.*?)">' % self.stats.book.id
+        pattern = r'<a href="%s(.*?)">' % book_id
         urls = re.findall(pattern, str(result))
+        articles_urls = []
         for i in range(len(urls)):
-            self.stats.articles_urls.append(book_url + urls[i])
-        self.stats.sum_tasks = len(self.stats.articles_urls)
+            articles_urls.append(book_url + urls[i])
+        return articles_urls
